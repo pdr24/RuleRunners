@@ -202,7 +202,7 @@ function evaluateRules(agent, rules) {
 function applyAction(agent, action) {
   if (!action) return;
   switch (action) {
-    case 'jump':       if (agent.grounded) { agent.vy = JUMP_V; agent.vx = agent.dir * MOVE_SPEED * 2; agent.grounded = false; } break;
+    case 'jump':       if (agent.grounded) { agent.vy = JUMP_V; agent.vx = agent.dir * MOVE_SPEED * 3; agent.grounded = false; } break;
     case 'move_left':  agent.vx = -MOVE_SPEED; agent.dir = -1; break;
     case 'move_right': agent.vx =  MOVE_SPEED; agent.dir =  1; break;
     case 'dash':       agent.vx = agent.dir * DASH_SPEED; break;

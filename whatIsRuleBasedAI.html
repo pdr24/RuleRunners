@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase 1 — What Is Rule-Based AI? | Parkour Agents</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── INTRO PAGE LAYOUT ── */
+    .intro-page {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      align-items: center;
+    }
+
+    /* Hero */
+    .intro-hero {
+      width: 100%;
+      padding: 50px 40px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .intro-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,128,255,0.15) 0%, transparent 70%);
+    }
+    .hero-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: 4px;
+      line-height: 1.1;
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .hero-title span { color: var(--accent-cyan); text-shadow: var(--glow-cyan); }
+    .hero-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      position: relative;
+      margin-bottom: 0;
+    }
+
+    /* Info grid */
+    .intro-grid {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 24px 40px;
+    }
+    .intro-panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .intro-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+    }
+    .intro-panel h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+    .intro-panel p {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: var(--text-secondary);
+    }
+    .intro-panel p strong { color: var(--text-primary); }
+
+    /* Rule example chip */
+    .rule-example {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: rgba(0,245,255,0.05);
+      border: 1px solid rgba(0,245,255,0.2);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.88rem;
+    }
+    .rule-if    { color: var(--accent-purple); }
+    .rule-cond  { color: var(--accent-yellow); }
+    .rule-then  { color: var(--accent-purple); }
+    .rule-action { color: var(--accent-green); }
+
+    /* List */
+    .what-learn-list {
+      list-style: none;
+      margin-top: 10px;
+    }
+    .what-learn-list li {
+      padding: 5px 0;
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .what-learn-list li::before {
+      content: '▸';
+      color: var(--accent-cyan);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .what-learn-list li strong { color: var(--text-primary); }
+
+    /* Demo box */
+    .demo-container {
+      width: 100%;
+      max-width: 1100px;
+      padding: 0 40px;
+      margin-bottom: 20px;
+    }
+    .demo-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      padding: 16px;
+      position: relative;
+    }
+    .demo-box::after {
+      content: 'LIVE DEMO';
+      position: absolute;
+      top: 10px; right: 14px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.58rem;
+      color: var(--accent-green);
+      letter-spacing: 2px;
+    }
+    #demo-canvas {
+      width: 100%;
+      height: 150px;
+      display: block;
+      background: #060c18;
+      border: 1px solid var(--border);
+    }
+    .demo-rule-display {
+      margin-top: 10px;
+      padding: 9px 14px;
+      background: rgba(139,92,246,0.1);
+      border: 1px solid rgba(139,92,246,0.3);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.82rem;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .demo-rule-display .label {
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* Demo pre-built rules list */
+    .demo-rules-list {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .demo-rule-chip {
+      padding: 4px 10px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+    }
+    .demo-rule-chip.firing {
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+      background: rgba(0,255,136,0.06);
+    }
+
+    /* Footer nav */
+    .intro-footer {
+      width: 100%;
+      max-width: 1100px;
+      padding: 0 40px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 800px) {
+      .intro-grid { grid-template-columns: 1fr; padding: 16px; }
+      .demo-container, .intro-footer { padding-left: 16px; padding-right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast"></div>
+
+  <header class="app-header">
+    <a class="logo" href="index.html">Rule-Based Parkour Agents</a>
+    <nav class="phase-indicator">
+      <span class="phase-dot active">01</span>
+      <div class="phase-connector"></div>
+      <a class="phase-dot clickable" href="buildAgent.html" title="Build Agent">02</a>
+      <div class="phase-connector"></div>
+      <a class="phase-dot clickable" href="compete.html" title="Compete">03</a>
+    </nav>
+  </header>
+
+  <div class="intro-page">
+
+    <div class="intro-hero">
+      <div class="grid-bg"></div>
+      <h1 class="hero-title">What is a <span>Rule-Based</span> AI?</h1>
+      <p class="hero-subtitle">An interactive exploration for two</p>
+    </div>
+
+    <div class="intro-grid">
+      <div class="intro-panel">
+        <h3>🤖 The Core Idea</h3>
+        <p>A <strong>rule-based AI</strong> doesn't think or learn — it simply follows a list of <strong>IF → THEN</strong> rules you write. Every action it takes is driven by your logic, nothing more.</p>
+        <p style="margin-top:10px;">The agent checks its sensors, finds the first matching rule, and executes the action. Simple, predictable, powerful.</p>
+        <div class="rule-example">
+          <span class="rule-if">IF</span>
+          <span class="rule-cond">gap_ahead</span>
+          <span class="rule-then">THEN</span>
+          <span class="rule-action">jump</span>
+        </div>
+      </div>
+
+      <div class="intro-panel">
+        <h3>📡 Sensors &amp; Conditions</h3>
+        <p>The agent uses <strong>sensors</strong> to detect its environment. These become the conditions in your IF statements.</p>
+        <ul class="what-learn-list">
+          <li><strong>Gap ahead</strong> — a drop in the floor is detected</li>
+          <li><strong>Coin nearby</strong> — a coin is within range</li>
+          <li><strong>Hazard nearby</strong> — a spike or enemy is detected</li>
+          <li><strong>Grounded</strong> — the agent is standing on a surface</li>
+          <li><strong>Near a wall</strong> — a wall blocks the path</li>
+        </ul>
+      </div>
+
+      <div class="intro-panel">
+        <h3>⚙️ Actions</h3>
+        <p>The THEN side of a rule tells the agent what to <strong>do</strong> when the condition fires. Rules are checked from top to bottom — <strong>order matters!</strong></p>
+        <ul class="what-learn-list">
+          <li><strong>Jump</strong> — leap upward</li>
+          <li><strong>Move left / Move right</strong> — walk horizontally</li>
+          <li><strong>Dash</strong> — sprint quickly in current direction</li>
+          <li><strong>Change direction</strong> — reverse current movement</li>
+        </ul>
+      </div>
+
+      <div class="intro-panel">
+        <h3>🏆 What You'll Do</h3>
+        <p>Working together, you'll build an AI agent using IF→THEN rules, then compete head-to-head with different strategies on an identical parkour map.</p>
+        <ul class="what-learn-list">
+          <li>Phase 1 — <strong>Learn</strong> what rule-based AI is (you are here)</li>
+          <li>Phase 2 — <strong>Build</strong> your shared agent collaboratively</li>
+          <li>Phase 3 — <strong>Compete</strong> with two separate rule sets</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Live demo -->
+    <div class="demo-container">
+      <div class="demo-box">
+        <canvas id="demo-canvas"></canvas>
+        <div class="demo-rule-display">
+          <span class="label">ACTIVE RULE ▸</span>
+          <span id="demo-rule-text" style="color: var(--text-secondary);">Watching agent…</span>
+        </div>
+        <div class="demo-rules-list" id="demo-chips"></div>
+      </div>
+    </div>
+
+    <div class="intro-footer">
+      <a class="btn btn-secondary" href="index.html">◀ Home</a>
+      <a class="btn btn-primary" href="buildAgent.html">Phase 2: Build Your Agent ▶</a>
+    </div>
+
+  </div>
+
+  <script src="js/engine.js"></script>
+  <script>
+    // ── DEMO PRE-BUILT RULES ─────────────────────
+    const DEMO_RULES = [
+      { cond: 'gap_ahead',     action: 'jump'       },
+      { cond: 'hazard_nearby', action: 'jump'       },
+      { cond: 'coin_nearby',   action: 'dash'       },
+      { cond: 'grounded',      action: 'move_right' },
+    ];
+
+    // Render chips
+    function renderDemoChips(activeIdx) {
+      const wrap = document.getElementById('demo-chips');
+      wrap.innerHTML = DEMO_RULES.map((r, i) =>
+        `<span class="demo-rule-chip ${i === activeIdx ? 'firing' : ''}">
+          IF ${COND_LABELS[r.cond]} THEN ${ACT_LABELS[r.action]}
+        </span>`
+      ).join('');
+    }
+    renderDemoChips(-1);
+
+    // ── DEMO SIMULATION LOOP ─────────────────────
+    let demoAgent = null;
+    let demoLevel = null;
+    let demoCam   = 0;
+    let demoAnimId = null;
+
+    function startDemoLoop() {
+      if (demoAnimId) cancelAnimationFrame(demoAnimId);
+      demoLevel = createLevel();
+      demoAgent = createAgent(20);
+      demoCam   = 0;
+      const canvas = document.getElementById('demo-canvas');
+      canvas.width  = canvas.offsetWidth  || 800;
+      canvas.height = canvas.offsetHeight || 150;
+      demoTick();
+    }
+
+    function demoTick() {
+      updateSensors(demoAgent, demoLevel);
+      const action = evaluateRules(demoAgent, DEMO_RULES);
+      applyAction(demoAgent, action);
+      physicsStep(demoAgent, demoLevel);
+      updateEnemies(demoLevel);
+      demoCam = Math.max(0, demoAgent.x - 150);
+
+      const canvas = document.getElementById('demo-canvas');
+      canvas.width  = canvas.offsetWidth  || 800;
+      canvas.height = canvas.offsetHeight || 150;
+      drawLevel(canvas.getContext('2d'), canvas.width, canvas.height, demoLevel, demoAgent, demoCam, 'green');
+
+      const idx = demoAgent.activeRuleIdx;
+      const el  = document.getElementById('demo-rule-text');
+      if (idx >= 0 && DEMO_RULES[idx]) {
+        const r = DEMO_RULES[idx];
+        el.innerHTML = `<span style="color:var(--accent-purple)">IF</span> <span style="color:var(--accent-yellow)">${COND_LABELS[r.cond]}</span> <span style="color:var(--accent-purple)">THEN</span> <span style="color:var(--accent-green)">${ACT_LABELS[r.action]}</span>`;
+      } else {
+        el.innerHTML = `<span style="color:var(--text-dim)">No rule firing…</span>`;
+      }
+      renderDemoChips(idx);
+
+      if (demoAgent.resetCount > 3 || demoAgent.finished) {
+        demoLevel = createLevel();
+        demoAgent = createAgent(20);
+        demoCam   = 0;
+      }
+
+      demoAnimId = requestAnimationFrame(demoTick);
+    }
+
+    window.addEventListener('load', startDemoLoop);
+    window.addEventListener('resize', () => {
+      const canvas = document.getElementById('demo-canvas');
+      canvas.width = canvas.offsetWidth || 800;
+    });
+  </script>
+</body>
+</html>

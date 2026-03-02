@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase 2 — Build Your Agent | Parkour Agents</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── BUILD PAGE LAYOUT ── */
+    body { overflow: hidden; height: 100vh; }
+
+    .build-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Game side */
+    .game-panel {
+      display: flex;
+      flex-direction: column;
+      padding: 16px 16px 16px 20px;
+      gap: 10px;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .canvas-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+    #build-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #060c18;
+      border: 1px solid var(--border);
+    }
+    .build-controls {
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 800px) {
+      body { overflow: auto; height: auto; }
+      .build-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast"></div>
+
+  <header class="app-header">
+    <a class="logo" href="index.html">Rule-Based Parkour Agents</a>
+    <nav class="phase-indicator">
+      <a class="phase-dot done clickable" href="whatIsRuleBasedAI.html" title="Intro">✓</a>
+      <div class="phase-connector done"></div>
+      <span class="phase-dot active">02</span>
+      <div class="phase-connector"></div>
+      <a class="phase-dot clickable" href="compete.html" title="Compete">03</a>
+    </nav>
+  </header>
+
+  <div class="build-layout" style="flex:1; display:grid;">
+
+    <!-- LEFT: Game canvas -->
+    <div class="game-panel">
+      <div class="tip-bar">💡 <span>Build rules on the right, then click <strong>RUN</strong> to watch your agent. Sensors are shown as colored halos. Drag rules to reorder them.</span></div>
+
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-label">Coins</span>
+          <span class="stat-val" id="build-coins">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Distance</span>
+          <span class="stat-val" id="build-dist">0m</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Lives</span>
+          <span class="stat-val">∞</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Active Rule</span>
+          <span class="stat-val" id="build-active-rule-stat" style="font-size:0.7rem; color:var(--accent-green);">—</span>
+        </div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <canvas id="build-canvas"></canvas>
+        <div class="canvas-overlay-badge" id="build-status">PAUSED</div>
+      </div>
+
+      <div class="sensor-legend">
+        <span class="sensor-item"><span class="sensor-dot" style="background:#ff2d55"></span>Hazard Sensor</span>
+        <span class="sensor-item"><span class="sensor-dot" style="background:#ffd60a"></span>Coin Sensor</span>
+        <span class="sensor-item"><span class="sensor-dot" style="background:#00f5ff"></span>Gap Sensor</span>
+        <span class="sensor-item"><span class="sensor-dot" style="background:#8b5cf6"></span>Wall Sensor</span>
+        <span class="sensor-item"><span class="sensor-dot" style="background:#00ff88"></span>Agent</span>
+      </div>
+
+      <div class="build-controls">
+        <button class="btn btn-primary" id="build-run-btn" onclick="buildRun()">▶ RUN</button>
+        <button class="btn btn-secondary" onclick="buildReset()">↺ RESET</button>
+        <button class="btn btn-secondary btn-sm" onclick="buildStep()">STEP</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Rule panel -->
+    <div class="rule-panel">
+      <div class="rule-panel-header">
+        <h3>⚡ Rule Set</h3>
+        <span style="font-family:'Share Tech Mono',monospace; font-size:0.65rem; color:var(--text-dim);" id="build-rule-count">0 rules</span>
+      </div>
+
+      <div class="rule-list" id="build-rule-list">
+        <!-- rules rendered by JS -->
+      </div>
+
+      <div class="active-rule-display">
+        <span class="label">FIRING ▸</span>
+        <span id="build-firing-text" style="color:var(--text-dim)">none</span>
+      </div>
+
+      <div class="add-rule-section">
+        <h4>+ Add New Rule</h4>
+        <div class="rule-builder">
+          <div class="rule-row">
+            <span class="rule-kw">IF</span>
+            <select class="rule-select" id="build-cond-select">
+              <option value="">— select condition —</option>
+              <option value="gap_ahead">Gap ahead</option>
+              <option value="coin_nearby">Coin nearby</option>
+              <option value="hazard_nearby">Hazard / enemy nearby</option>
+              <option value="grounded">Grounded (on platform)</option>
+              <option value="near_wall">Near a wall</option>
+            </select>
+          </div>
+          <div class="rule-row">
+            <span class="rule-kw">THEN</span>
+            <select class="rule-select" id="build-action-select">
+              <option value="">— select action —</option>
+              <option value="jump">Jump</option>
+              <option value="move_left">Move left</option>
+              <option value="move_right">Move right</option>
+              <option value="dash">Dash (sprint)</option>
+              <option value="change_dir">Change direction</option>
+            </select>
+          </div>
+          <button class="btn btn-green btn-sm" onclick="buildAddRule()" style="align-self:flex-end;">+ ADD RULE</button>
+        </div>
+      </div>
+
+      <div class="rule-panel-footer">
+        <button class="btn btn-primary" style="flex:1;" onclick="proceedToCompete()">Proceed to Compete ▶</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/engine.js"></script>
+  <script src="js/build.js"></script>
+</body>
+</html>

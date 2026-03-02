@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rule-Based Parkour Agents</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── INDEX-SPECIFIC STYLES ── */
+    .index-body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,128,255,0.12) 0%, transparent 70%);
+    }
+
+    .hero-eyebrow {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 4px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .hero-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: 4px;
+      line-height: 1.1;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .hero-title span { color: var(--accent-cyan); text-shadow: var(--glow-cyan); }
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      font-weight: 300;
+      letter-spacing: 2px;
+      position: relative;
+      margin-bottom: 60px;
+      max-width: 480px;
+    }
+
+    /* Phase cards */
+    .phase-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+      margin-bottom: 48px;
+    }
+    .phase-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      width: 220px;
+      padding: 24px 20px;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .phase-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+    .phase-card:nth-child(1)::before { background: linear-gradient(90deg, transparent, var(--accent-blue), transparent); }
+    .phase-card:nth-child(2)::before { background: linear-gradient(90deg, transparent, var(--accent-purple), transparent); }
+    .phase-card:nth-child(3)::before { background: linear-gradient(90deg, transparent, var(--accent-green), transparent); }
+    .phase-card:hover { transform: translateY(-3px); }
+    .phase-card:nth-child(1):hover { border-color: var(--accent-blue); }
+    .phase-card:nth-child(2):hover { border-color: var(--accent-purple); }
+    .phase-card:nth-child(3):hover { border-color: var(--accent-green); }
+    .phase-card .pc-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .phase-card .pc-icon { font-size: 1.6rem; margin-bottom: 10px; display: block; }
+    .phase-card .pc-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .phase-card .pc-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .phase-card .pc-arrow {
+      position: absolute;
+      bottom: 14px; right: 16px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      transition: color 0.2s;
+    }
+    .phase-card:hover .pc-arrow { color: var(--accent-cyan); }
+
+    .start-btn-wrap {
+      position: relative;
+    }
+    .start-sub {
+      margin-top: 14px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: 'Share Tech Mono', monospace;
+      letter-spacing: 1px;
+    }
+
+    footer {
+      padding: 16px 30px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body class="index-body">
+
+  <header class="app-header">
+    <a class="logo" href="index.html">Rule-Based Parkour Agents</a>
+    <nav class="phase-indicator">
+      <span class="phase-dot active">01</span>
+      <div class="phase-connector"></div>
+      <span class="phase-dot">02</span>
+      <div class="phase-connector"></div>
+      <span class="phase-dot">03</span>
+    </nav>
+  </header>
+
+  <main class="hero">
+    <div class="grid-bg"></div>
+    <p class="hero-eyebrow">An Interactive Learning Experience for Two</p>
+    <h1 class="hero-title">Rule-Based<br><span>Parkour</span> Agents</h1>
+    <p class="hero-subtitle">Build AI agents using IF → THEN logic, then compete head‑to‑head on an identical parkour map.</p>
+
+    <div class="phase-cards">
+      <a class="phase-card" href="whatIsRuleBasedAI.html">
+        <div class="pc-num">Phase 01</div>
+        <span class="pc-icon">🤖</span>
+        <div class="pc-title">What Is Rule-Based AI?</div>
+        <div class="pc-desc">Learn how agents think with IF → THEN rules and watch a live demo.</div>
+        <span class="pc-arrow">▶</span>
+      </a>
+      <a class="phase-card" href="buildAgent.html">
+        <div class="pc-num">Phase 02</div>
+        <span class="pc-icon">⚙️</span>
+        <div class="pc-title">Build Your Agent</div>
+        <div class="pc-desc">Collaboratively design a rule set and watch your agent navigate the level.</div>
+        <span class="pc-arrow">▶</span>
+      </a>
+      <a class="phase-card" href="compete.html">
+        <div class="pc-num">Phase 03</div>
+        <span class="pc-icon">🏆</span>
+        <div class="pc-title">Compete</div>
+        <div class="pc-desc">Each player designs their own agent — then race them on the same map.</div>
+        <span class="pc-arrow">▶</span>
+      </a>
+    </div>
+
+    <div class="start-btn-wrap">
+      <a class="btn btn-primary" href="whatIsRuleBasedAI.html">Start Here ▶</a>
+      <p class="start-sub">Designed for two students on one screen</p>
+    </div>
+  </main>
+
+  <footer>Rule-Based Parkour Agents &nbsp;·&nbsp; AI Education Tool</footer>
+
+</body>
+</html>

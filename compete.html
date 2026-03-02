@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phase 3 — Compete | Parkour Agents</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── COMPETE PAGE LAYOUT ── */
+    body { overflow: hidden; height: 100vh; }
+
+    .compete-layout {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Top rule-editor strip */
+    .compete-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      max-height: 210px;
+    }
+    .agent-setup {
+      padding: 12px 18px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .agent-setup:first-child { border-right: 1px solid var(--border); }
+
+    .agent-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .agent-a-label { color: var(--accent-cyan); }
+    .agent-b-label { color: var(--accent-orange); }
+
+    .mini-rule-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-height: 40px;
+    }
+    .mini-rule-list::-webkit-scrollbar { width: 3px; }
+    .mini-rule-list::-webkit-scrollbar-track { background: transparent; }
+    .mini-rule-list::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .mini-rule-card {
+      background: var(--bg-panel2);
+      border: 1px solid var(--border);
+      padding: 5px 9px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: grab;
+    }
+    .mini-rule-card.active-rule-a { border-color: var(--accent-cyan);   background: rgba(0,245,255,0.05); }
+    .mini-rule-card.active-rule-b { border-color: var(--accent-orange); background: rgba(255,107,53,0.05); }
+    .mini-rule-num  { font-family: 'Orbitron', sans-serif; font-size: 0.58rem; color: var(--text-dim); width: 14px; flex-shrink: 0; }
+    .mini-rule-text { font-family: 'Share Tech Mono', monospace; font-size: 0.63rem; flex: 1; }
+    .mini-rule-delete {
+      background: none; border: none; color: var(--accent-red);
+      cursor: pointer; font-size: 0.75rem; opacity: 0.45; padding: 0 2px; flex-shrink: 0;
+    }
+    .mini-rule-delete:hover { opacity: 1; }
+
+    .mini-add-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .mini-kw { font-family: 'Share Tech Mono', monospace; font-size: 0.68rem; color: var(--accent-purple); flex-shrink: 0; }
+
+    /* Arena */
+    .compete-arena {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 16px;
+      gap: 8px;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .arena-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .arena-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+    .timer-display {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--accent-yellow);
+      text-shadow: 0 0 20px rgba(255,214,10,0.5);
+      letter-spacing: 3px;
+    }
+    .timer-display.urgent {
+      color: var(--accent-red);
+      text-shadow: 0 0 20px rgba(255,45,85,0.6);
+      animation: pulse 0.5s infinite;
+    }
+    .scoreboard { display: flex; gap: 14px; }
+    .score-chip {
+      padding: 4px 12px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .score-chip.chip-a { border-color: rgba(0,245,255,0.3); }
+    .score-chip.chip-b { border-color: rgba(255,107,53,0.3); }
+    .chip-label { color: var(--text-dim); font-size: 0.62rem; }
+    .chip-val-a { color: var(--accent-cyan); font-size: 0.88rem; }
+    .chip-val-b { color: var(--accent-orange); font-size: 0.88rem; }
+
+    .arena-canvases {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      min-height: 0;
+    }
+    .arena-canvas-wrap {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .arena-canvas-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      padding: 5px 10px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .label-a { background: rgba(0,245,255,0.1); color: var(--accent-cyan); border: 1px solid rgba(0,245,255,0.2); }
+    .label-b { background: rgba(255,107,53,0.1); color: var(--accent-orange); border: 1px solid rgba(255,107,53,0.2); }
+    .arena-canvas {
+      flex: 1;
+      display: block;
+      background: #060c18;
+      border: 1px solid var(--border);
+      min-height: 0;
+    }
+
+    .compete-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 800px) {
+      body { overflow: auto; height: auto; }
+      .compete-top { grid-template-columns: 1fr; max-height: none; }
+      .arena-canvases { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="toast"></div>
+
+  <!-- Result overlay (defined in HTML, controlled by JS) -->
+  <div class="result-overlay" id="result-overlay">
+    <div class="result-box">
+      <div class="result-winner">🏆 Competition Result</div>
+      <div class="result-name" id="result-winner-name">—</div>
+      <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;" id="result-subtitle"></div>
+      <div class="result-scores">
+        <div class="result-score-col">
+          <div class="rs-label">α ALPHA</div>
+          <div class="rs-val rs-val-a" id="result-score-a">0</div>
+        </div>
+        <div class="result-score-col">
+          <div class="rs-label">β BETA</div>
+          <div class="rs-val rs-val-b" id="result-score-b">0</div>
+        </div>
+      </div>
+      <div class="result-reflection">
+        <h4>💬 Reflect Together</h4>
+        <p id="result-reflection-text">Think about which rules made the biggest difference. Did rule ordering matter? Were there any conflicting rules?</p>
+      </div>
+      <div class="result-btns">
+        <button class="btn btn-primary" onclick="competeReset(); closeResult()">↺ Play Again</button>
+        <button class="btn btn-secondary" onclick="window.location.href='buildAgent.html'">◀ Edit Rules</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="app-header">
+    <a class="logo" href="index.html">Rule-Based Parkour Agents</a>
+    <nav class="phase-indicator">
+      <a class="phase-dot done clickable" href="whatIsRuleBasedAI.html" title="Intro">✓</a>
+      <div class="phase-connector done"></div>
+      <a class="phase-dot done clickable" href="buildAgent.html" title="Build">✓</a>
+      <div class="phase-connector done"></div>
+      <span class="phase-dot active">03</span>
+    </nav>
+  </header>
+
+  <div class="compete-layout">
+
+    <!-- ── TOP: Agent rule editors ── -->
+    <div class="compete-top">
+
+      <!-- Agent Alpha (A) -->
+      <div class="agent-setup">
+        <div class="agent-label agent-a-label">◈ AGENT ALPHA — Player 1</div>
+        <div class="mini-rule-list" id="compete-a-list"></div>
+        <div class="mini-add-row">
+          <span class="mini-kw">IF</span>
+          <select class="mini-select" id="a-cond">
+            <option value="">— condition —</option>
+            <option value="gap_ahead">Gap ahead</option>
+            <option value="coin_nearby">Coin nearby</option>
+            <option value="hazard_nearby">Hazard nearby</option>
+            <option value="grounded">Grounded</option>
+            <option value="near_wall">Near wall</option>
+          </select>
+          <span class="mini-kw">THEN</span>
+          <select class="mini-select" id="a-action">
+            <option value="">— action —</option>
+            <option value="jump">Jump</option>
+            <option value="move_left">Move left</option>
+            <option value="move_right">Move right</option>
+            <option value="dash">Dash</option>
+            <option value="change_dir">Change dir</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="competeAddRule('a')">+</button>
+        </div>
+      </div>
+
+      <!-- Agent Beta (B) -->
+      <div class="agent-setup">
+        <div class="agent-label agent-b-label">◈ AGENT BETA — Player 2</div>
+        <div class="mini-rule-list" id="compete-b-list"></div>
+        <div class="mini-add-row">
+          <span class="mini-kw">IF</span>
+          <select class="mini-select" id="b-cond">
+            <option value="">— condition —</option>
+            <option value="gap_ahead">Gap ahead</option>
+            <option value="coin_nearby">Coin nearby</option>
+            <option value="hazard_nearby">Hazard nearby</option>
+            <option value="grounded">Grounded</option>
+            <option value="near_wall">Near wall</option>
+          </select>
+          <span class="mini-kw">THEN</span>
+          <select class="mini-select" id="b-action">
+            <option value="">— action —</option>
+            <option value="jump">Jump</option>
+            <option value="move_left">Move left</option>
+            <option value="move_right">Move right</option>
+            <option value="dash">Dash</option>
+            <option value="change_dir">Change dir</option>
+          </select>
+          <button class="btn btn-danger btn-sm" onclick="competeAddRule('b')">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BOTTOM: Competition arena ── -->
+    <div class="compete-arena">
+      <div class="arena-header">
+        <span class="arena-title">🏟 Competition Arena</span>
+        <div class="timer-display" id="compete-timer">90</div>
+        <div class="scoreboard">
+          <div class="score-chip chip-a">
+            <span class="chip-label">α SCORE</span>
+            <span class="chip-val-a" id="score-a">0</span>
+          </div>
+          <div class="score-chip chip-b">
+            <span class="chip-label">β SCORE</span>
+            <span class="chip-val-b" id="score-b">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arena-canvases">
+        <div class="arena-canvas-wrap">
+          <div class="arena-canvas-label label-a">◈ ALPHA</div>
+          <canvas class="arena-canvas" id="compete-canvas-a"></canvas>
+        </div>
+        <div class="arena-canvas-wrap">
+          <div class="arena-canvas-label label-b">◈ BETA</div>
+          <canvas class="arena-canvas" id="compete-canvas-b"></canvas>
+        </div>
+      </div>
+
+      <div class="compete-controls">
+        <button class="btn btn-green" id="compete-start-btn" onclick="competeStart()">▶ START COMPETITION</button>
+        <button class="btn btn-secondary" onclick="competeReset()">↺ RESET</button>
+        <a class="btn btn-secondary btn-sm" href="buildAgent.html">◀ Back to Build</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/engine.js"></script>
+  <script src="js/compete.js"></script>
+</body>
+</html>

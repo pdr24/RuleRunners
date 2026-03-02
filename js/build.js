@@ -14,8 +14,6 @@ let buildStepAcc  = 0;
 
 // ── INIT ─────────────────────────────────────────
 window.addEventListener('load', () => {
-  // Restore any previously saved rules
-  buildRules = loadRules('buildRules');
   initBuild();
   window.addEventListener('resize', resizeBuildCanvas);
 });
@@ -54,20 +52,18 @@ function buildAddRule() {
   buildRules.push({ cond, action });
   document.getElementById('build-cond-select').value   = '';
   document.getElementById('build-action-select').value = '';
-  saveRules('buildRules', buildRules);
   renderBuildRules();
   showToast('✓ Rule added!');
 }
 
 function buildDeleteRule(i) {
   buildRules.splice(i, 1);
-  saveRules('buildRules', buildRules);
   renderBuildRules();
 }
 
 // Drag context accessor for shared engine dragDrop helper
 function _getBuildArr() { return buildRules; }
-function _onBuildRender() { saveRules('buildRules', buildRules); renderBuildRules(); }
+function _onBuildRender() { renderBuildRules(); }
 
 function renderBuildRules() {
   const list  = document.getElementById('build-rule-list');
@@ -175,8 +171,5 @@ function drawBuildFrame() {
 
 // ── PROCEED TO COMPETE ───────────────────────────
 function proceedToCompete() {
-  // Rules already saved to sessionStorage as they're added/deleted
-  // Save once more to be sure
-  saveRules('buildRules', buildRules);
   window.location.href = 'compete.html';
 }

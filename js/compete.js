@@ -18,9 +18,9 @@ let competeScoreA = 0, competeScoreB = 0;
 
 // ── INIT ─────────────────────────────────────────
 window.addEventListener('load', () => {
-  // Load rules — Alpha gets build rules as starting point, Beta starts empty
-  competeRulesA = loadRules('buildRules');
-  competeRulesB = loadRules('competeRulesB'); // persists B's own rules
+  // Both agents start with empty rule sets on this page
+  competeRulesA = [];
+  competeRulesB = [];
   initCompete();
   window.addEventListener('resize', () => {
     resizeCompeteCanvases();
@@ -69,7 +69,6 @@ function competeAddRule(ag) {
   arr.push({ cond, action });
   document.getElementById(ag + '-cond').value   = '';
   document.getElementById(ag + '-action').value = '';
-  if (ag === 'b') saveRules('competeRulesB', competeRulesB);
   renderCompeteRules();
   showToast(`✓ Rule added to Agent ${ag === 'a' ? 'Alpha' : 'Beta'}!`);
 }
@@ -77,7 +76,6 @@ function competeAddRule(ag) {
 function competeDeleteRule(ag, i) {
   const arr = ag === 'a' ? competeRulesA : competeRulesB;
   arr.splice(i, 1);
-  if (ag === 'b') saveRules('competeRulesB', competeRulesB);
   renderCompeteRules();
 }
 
@@ -86,7 +84,6 @@ function _getCompeteArr(ctx) {
   return ctx === 'a' ? competeRulesA : competeRulesB;
 }
 function _onCompeteRender(ctx) {
-  if (ctx === 'b') saveRules('competeRulesB', competeRulesB);
   renderCompeteRules();
 }
 

@@ -46,17 +46,6 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// ── SESSION STORAGE HELPERS ────────────────────
-function saveRules(key, rules) {
-  try { sessionStorage.setItem(key, JSON.stringify(rules)); } catch(e) {}
-}
-function loadRules(key) {
-  try {
-    const raw = sessionStorage.getItem(key);
-    return raw ? JSON.parse(raw) : [];
-  } catch(e) { return []; }
-}
-
 // ── DRAG & DROP (shared reorder logic) ─────────
 let _dragSrcIdx = null;
 let _dragContext = null;

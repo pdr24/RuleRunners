@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phase 1.5 — Guided Walkthrough | Parkour Agents</title>
+  <title>Phase 1.2 — Sensor Detection | Parkour Agents</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     /* ── PAGE LAYOUT ── */
     body { overflow: hidden; height: 100vh; }
 
-    .guided-page {
+    .sd-page {
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -34,12 +34,12 @@
     }
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
       border-radius: 2px;
       transition: width 0.4s ease;
       width: 0%;
     }
-    #step-counter {
+    #sd-step-counter {
       font-family: 'Orbitron', sans-serif;
       font-size: 0.65rem;
       letter-spacing: 2px;
@@ -47,8 +47,8 @@
       white-space: nowrap;
     }
 
-    /* ── MAIN CONTENT (canvas + panel) ── */
-    .guided-main {
+    /* ── MAIN SPLIT ── */
+    .sd-main {
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 340px;
@@ -57,8 +57,8 @@
       min-height: 0;
     }
 
-    /* ── LEFT: GAME PANEL ── */
-    .guided-game-panel {
+    /* ── LEFT: canvas panel ── */
+    .sd-game-panel {
       display: flex;
       flex-direction: column;
       padding: 12px 12px 12px 20px;
@@ -69,22 +69,27 @@
 
     .step-context-bar {
       padding: 9px 14px;
-      background: rgba(0,128,255,0.07);
-      border: 1px solid rgba(0,128,255,0.2);
+      background: rgba(139,92,246,0.07);
+      border: 1px solid rgba(139,92,246,0.2);
       font-size: 0.82rem;
       color: var(--text-secondary);
       font-family: 'Exo 2', sans-serif;
       flex-shrink: 0;
       line-height: 1.4;
     }
-    .step-context-bar strong { color: var(--accent-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.7rem; letter-spacing: 1px; }
+    .step-context-bar strong {
+      color: var(--accent-purple);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+    }
 
     .canvas-wrapper {
       position: relative;
       flex: 1;
       min-height: 0;
     }
-    #guided-canvas {
+    #sd-canvas {
       width: 100%;
       height: 100%;
       display: block;
@@ -92,35 +97,30 @@
       border: 1px solid var(--border);
     }
 
-    /* ── SENSOR BADGES ── */
-    .sensor-badges-row {
+    /* sensor legend */
+    .sensor-legend-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 12px;
       flex-shrink: 0;
+      padding: 6px 0 2px;
     }
-    .sensor-badge {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.68rem;
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      color: var(--text-dim);
-      letter-spacing: 0.5px;
-      transition: all 0.2s;
-    }
-    .badge-on  { font-weight: 700; }
-    .badge-off { opacity: 0.4; }
-
-    .sensor-legend-tip {
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.65rem;
       color: var(--text-dim);
+    }
+    .legend-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
       flex-shrink: 0;
-      padding: 2px 0;
     }
 
-    /* ── RIGHT: RULE PANEL ── */
-    .guided-rule-panel {
+    /* ── RIGHT: choice panel ── */
+    .sd-rule-panel {
       background: var(--bg-panel);
       border-left: 1px solid var(--border);
       display: flex;
@@ -137,7 +137,7 @@
       font-family: 'Orbitron', sans-serif;
       font-size: 0.78rem;
       font-weight: 700;
-      color: var(--accent-cyan);
+      color: var(--accent-purple);
       letter-spacing: 2px;
       text-transform: uppercase;
       margin-bottom: 4px;
@@ -146,63 +146,83 @@
       font-size: 0.75rem;
       color: var(--text-dim);
       font-family: 'Share Tech Mono', monospace;
+      line-height: 1.4;
     }
 
-    /* Rule choice cards */
-    .rule-choices {
+    /* Instruction badge */
+    .multi-select-tip {
+      margin: 8px 14px 0;
+      padding: 6px 10px;
+      background: rgba(139,92,246,0.08);
+      border: 1px solid rgba(139,92,246,0.2);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--accent-purple);
+      flex-shrink: 0;
+    }
+
+    /* Choice cards */
+    .sd-choices {
       flex: 1;
       overflow-y: auto;
-      padding: 12px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 6px;
     }
-    .rule-choices::-webkit-scrollbar { width: 3px; }
-    .rule-choices::-webkit-scrollbar-track { background: transparent; }
-    .rule-choices::-webkit-scrollbar-thumb { background: var(--border); }
+    .sd-choices::-webkit-scrollbar { width: 3px; }
+    .sd-choices::-webkit-scrollbar-track { background: transparent; }
+    .sd-choices::-webkit-scrollbar-thumb { background: var(--border); }
 
-    .choice-card {
+    .sd-choice-card {
       background: var(--bg-panel2);
       border: 2px solid var(--border);
-      padding: 10px 12px;
+      padding: 9px 12px;
       display: flex;
       align-items: center;
       gap: 10px;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
       user-select: none;
+      position: relative;
     }
-    .choice-card:hover {
+    .sd-choice-card:hover {
       border-color: var(--border-bright);
       background: rgba(255,255,255,0.03);
     }
-    .choice-card.choice-selected {
-      border-color: var(--accent-blue);
-      background: rgba(0,128,255,0.08);
+    .sd-choice-card.sd-choice-selected {
+      border-color: var(--accent-purple);
+      background: rgba(139,92,246,0.1);
     }
-    .choice-card.choice-correct {
+    .sd-choice-card.sd-choice-correct {
       border-color: var(--accent-green) !important;
-      background: rgba(0,255,136,0.1) !important;
+      background: rgba(0,255,136,0.08) !important;
       cursor: default;
     }
-    .choice-card.choice-wrong {
+    .sd-choice-card.sd-choice-wrong {
       border-color: var(--accent-red) !important;
       background: rgba(255,45,85,0.08) !important;
       cursor: default;
     }
-    .choice-num {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.65rem;
-      color: var(--text-dim);
-      width: 16px;
+    .sd-choice-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
       flex-shrink: 0;
     }
-    .choice-text {
+    .sd-choice-text {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       flex: 1;
-      line-height: 1.4;
+      color: var(--text-primary);
     }
+    .sd-check-tick {
+      font-size: 0.8rem;
+      color: var(--accent-purple);
+      flex-shrink: 0;
+    }
+
+    /* none-of-the-above card — slightly muted */
+    #sdchoice-__none__ .sd-choice-text { color: var(--text-secondary); }
 
     /* ── FEEDBACK AREA ── */
     .feedback-area {
@@ -224,7 +244,7 @@
     .fb-wrong   { color: var(--accent-red); }
     .fb-warning { color: var(--accent-yellow); }
 
-    #hint-box {
+    #sd-hint-box {
       display: none;
       padding: 8px 12px;
       background: rgba(255,214,10,0.07);
@@ -234,18 +254,12 @@
       color: var(--accent-yellow);
       line-height: 1.5;
     }
-    #hint-box::before {
-      content: '💡 Hint: ';
-      font-weight: 700;
-    }
+    #sd-hint-box::before { content: '💡 Hint: '; font-weight: 700; }
 
-    .action-row {
-      display: flex;
-      gap: 8px;
-    }
+    .action-row { display: flex; gap: 8px; }
 
     /* ── RESULTS SCREEN ── */
-    #guided-results {
+    #sd-results {
       display: none;
       flex: 1;
       flex-direction: column;
@@ -257,10 +271,10 @@
 
     .results-box {
       background: var(--bg-panel);
-      border: 1px solid var(--accent-cyan);
-      box-shadow: var(--glow-cyan);
-      padding: 48px 56px;
-      max-width: 520px;
+      border: 1px solid var(--accent-purple);
+      box-shadow: 0 0 20px rgba(139,92,246,0.3);
+      padding: 44px 52px;
+      max-width: 560px;
       width: 100%;
       position: relative;
     }
@@ -269,7 +283,7 @@
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 3px;
-      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan), var(--accent-purple));
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan), var(--accent-blue));
     }
 
     .results-eyebrow {
@@ -278,50 +292,67 @@
       letter-spacing: 4px;
       color: var(--text-dim);
       text-transform: uppercase;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
-    .big-accuracy {
+    /* Dual accuracy display */
+    .accuracy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .acc-col {
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .acc-col-label {
       font-family: 'Orbitron', sans-serif;
-      font-size: 4rem;
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .acc-big {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.6rem;
       font-weight: 900;
       line-height: 1;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .grade-perfect { color: var(--accent-green);  text-shadow: var(--glow-green); }
     .grade-good    { color: var(--accent-cyan);   text-shadow: var(--glow-cyan); }
-    .grade-ok      { color: var(--accent-yellow); text-shadow: 0 0 20px rgba(255,214,10,0.4); }
+    .grade-ok      { color: var(--accent-yellow); }
 
-    .accuracy-sub {
+    .acc-detail {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      margin-bottom: 24px;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      line-height: 1.4;
     }
-    .accuracy-sub span { color: var(--text-primary); }
 
     .result-message {
       background: var(--bg-deep);
       border: 1px solid var(--border);
-      padding: 16px 20px;
-      font-size: 0.88rem;
+      padding: 14px 18px;
+      font-size: 0.85rem;
       color: var(--text-secondary);
       line-height: 1.6;
       text-align: left;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
     }
 
-    .results-btns {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-    }
+    .results-btns { display: flex; gap: 12px; justify-content: center; }
 
     @media (max-width: 800px) {
       body { overflow: auto; height: auto; }
-      .guided-main { grid-template-columns: 1fr; }
-      #guided-results { padding: 20px; }
-      .results-box { padding: 28px 20px; }
+      .sd-main { grid-template-columns: 1fr; }
+      #sd-results { padding: 20px; }
+      .results-box { padding: 24px 16px; }
+      .accuracy-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -334,9 +365,9 @@
     <nav class="phase-indicator">
       <a class="phase-dot done clickable" href="whatIsRuleBasedAI.html" title="Intro">✓</a>
       <div class="phase-connector done"></div>
-      <a class="phase-dot done clickable" href="sensorDetection.html" title="Sensor Detection">✓</a>
-      <div class="phase-connector done"></div>
-      <span class="phase-dot active" title="Guided Walkthrough">1.5</span>
+      <span class="phase-dot active" title="Sensor Detection">1.2</span>
+      <div class="phase-connector"></div>
+      <a class="phase-dot clickable" href="guidedWalkthrough.html" title="Guided Walkthrough">1.5</a>
       <div class="phase-connector"></div>
       <a class="phase-dot clickable" href="buildAgent.html" title="Build Agent">02</a>
       <div class="phase-connector"></div>
@@ -347,79 +378,100 @@
   <!-- ── PROGRESS BAR ── -->
   <div class="progress-bar-wrap">
     <div class="progress-track">
-      <div class="progress-fill" id="progress-fill"></div>
+      <div class="progress-fill" id="sd-progress-fill"></div>
     </div>
-    <span id="step-counter">Step 1 of 11</span>
+    <span id="sd-step-counter">Step 1 of 11</span>
   </div>
 
-  <div class="guided-page">
+  <div class="sd-page">
 
     <!-- ══════════════════════════════════════
-         MAIN: canvas + rule panel
+         MAIN: canvas + choice panel
     ═══════════════════════════════════════ -->
-    <div class="guided-main" id="guided-main">
+    <div class="sd-main" id="sd-main">
 
       <!-- LEFT: game canvas -->
-      <div class="guided-game-panel">
+      <div class="sd-game-panel">
 
         <div class="step-context-bar">
-          <strong>SITUATION ▸</strong> <span id="step-context"></span>
+          <strong>SITUATION ▸</strong> <span id="sd-step-context"></span>
         </div>
 
         <div class="canvas-wrapper">
-          <canvas id="guided-canvas"></canvas>
+          <canvas id="sd-canvas"></canvas>
         </div>
 
-        <div class="sensor-badges-row" id="sensor-badges"></div>
-        <div class="sensor-legend-tip">● = sensor active &nbsp;|&nbsp; ○ = sensor inactive &nbsp;|&nbsp; Coloured halos shown on canvas</div>
+        <!-- Sensor colour legend -->
+        <div class="sensor-legend-row">
+          <span class="legend-item"><span class="legend-dot" style="background:#00f5ff"></span>Gap ahead</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ffd60a"></span>Coin nearby</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ff2d55"></span>Hazard nearby</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#8b5cf6"></span>Near wall</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#00ff88"></span>Grounded (agent colour)</span>
+        </div>
 
       </div>
 
-      <!-- RIGHT: rule panel -->
-      <div class="guided-rule-panel">
+      <!-- RIGHT: condition choices -->
+      <div class="sd-rule-panel">
 
         <div class="panel-header">
-          <h3>🤔 Which Rule Fires?</h3>
-          <p>Look at the active sensors, then select the rule that will execute this step.</p>
+          <h3>📡 Which Sensors Are Active?</h3>
+          <p>Look at the canvas, then select <strong>all</strong> conditions that are currently true for this agent.</p>
         </div>
 
-        <div class="rule-choices" id="rule-choices">
+        <div class="multi-select-tip">☑ You can select multiple conditions. Pick "None" if nothing applies.</div>
+
+        <div class="sd-choices" id="sd-choices">
           <!-- rendered by JS -->
         </div>
 
         <div class="feedback-area">
-          <div class="feedback-msg" id="feedback-msg"></div>
-          <div id="hint-box"></div>
+          <div class="feedback-msg" id="sd-feedback-msg"></div>
+          <div id="sd-hint-box"></div>
           <div class="action-row">
-            <button class="btn btn-primary" style="flex:1;" id="check-btn" onclick="checkAnswer()">✓ CHECK ANSWER</button>
-            <button class="btn btn-green"   style="flex:1; display:none;" id="next-btn" onclick="nextStep()">Next Step ▶</button>
+            <button class="btn btn-primary"   style="flex:1;" id="sd-check-btn" onclick="sdCheckAnswer()">✓ CHECK ANSWER</button>
+            <button class="btn btn-green"     style="flex:1; display:none;" id="sd-next-btn" onclick="sdNextStep()">Next Step ▶</button>
           </div>
         </div>
 
       </div>
-    </div><!-- /#guided-main -->
+    </div><!-- /#sd-main -->
 
     <!-- ══════════════════════════════════════
          RESULTS SCREEN
     ═══════════════════════════════════════ -->
-    <div id="guided-results">
+    <div id="sd-results">
       <div class="results-box">
-        <div class="results-eyebrow">📊 Walkthrough Complete</div>
-        <div class="big-accuracy grade-good" id="result-accuracy">—%</div>
-        <div class="accuracy-sub">
-          <span id="result-correct">0</span> out of <span id="result-total">11</span> correct on first try
-        </div>
-        <div class="result-message" id="result-msg"></div>
-        <div class="results-btns">
-          <button class="btn btn-secondary" onclick="restartGuided()">↺ Try Again</button>
-          <a class="btn btn-primary" href="buildAgent.html">Phase 2: Build Your Agent ▶</a>
-        </div>
-      </div>
-    </div>
 
-  </div><!-- /.guided-page -->
+        <div class="results-eyebrow">📊 Sensor Detection Complete</div>
+
+        <div class="accuracy-grid">
+          <div class="acc-col">
+            <div class="acc-col-label">Step Accuracy</div>
+            <div class="acc-big grade-good" id="sd-acc-step">—%</div>
+            <div class="acc-detail" id="sd-res-step-detail">steps fully correct on first try</div>
+          </div>
+          <div class="acc-col">
+            <div class="acc-col-label">Condition Accuracy</div>
+            <div class="acc-big grade-good" id="sd-acc-cond">—%</div>
+            <div class="acc-detail" id="sd-res-cond-detail">individual condition answers correct</div>
+          </div>
+        </div>
+
+        <div class="result-message" id="sd-res-msg"></div>
+
+        <div class="results-btns">
+          <button class="btn btn-secondary" onclick="sdRestart()">↺ Try Again</button>
+          <a class="btn btn-primary" href="guidedWalkthrough.html">Phase 1.5: Guided Walkthrough ▶</a>
+        </div>
+
+      </div>
+    </div><!-- /#sd-results -->
+
+  </div><!-- /.sd-page -->
 
   <script src="js/engine.js"></script>
-  <script src="js/guided.js"></script>
+  <script src="js/sensorDetection.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rule-Based Parkour Agents</title>
+  <title>RuleRunners Home</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     /* ── INDEX-SPECIFIC STYLES ── */
@@ -152,21 +152,9 @@
   </style>
 </head>
 <body class="index-body">
-
-  <header class="app-header">
-    <a class="logo" href="index.html">Rule-Based Parkour Agents</a>
-    <nav class="phase-indicator">
-      <span class="phase-dot active">01</span>
-      <div class="phase-connector"></div>
-      <span class="phase-dot">1.2</span>
-      <div class="phase-connector"></div>
-      <span class="phase-dot">1.5</span>
-      <div class="phase-connector"></div>
-      <span class="phase-dot">02</span>
-      <div class="phase-connector"></div>
-      <span class="phase-dot">03</span>
-    </nav>
-  </header>
+  
+  <header class="app-header" data-phase="home"></header>
+  <script src="js/nav.js"></script>
 
   <main class="hero">
     <div class="grid-bg"></div>
@@ -183,28 +171,28 @@
         <span class="pc-arrow">▶</span>
       </a>
       <a class="phase-card" href="sensorDetection.html">
-        <div class="pc-num">Phase 1.2</div>
+        <div class="pc-num">Phase 02</div>
         <span class="pc-icon">📡</span>
         <div class="pc-title">Sensor Detection</div>
         <div class="pc-desc">Look at frozen snapshots and identify all the conditions that are currently active.</div>
         <span class="pc-arrow">▶</span>
       </a>
       <a class="phase-card" href="guidedWalkthrough.html">
-        <div class="pc-num">Phase 1.5</div>
+        <div class="pc-num">Phase 03</div>
         <span class="pc-icon">🎯</span>
         <div class="pc-title">Guided Walkthrough</div>
         <div class="pc-desc">Step through a predefined agent and predict which rule fires at each moment.</div>
         <span class="pc-arrow">▶</span>
       </a>
       <a class="phase-card" href="buildAgent.html">
-        <div class="pc-num">Phase 02</div>
+        <div class="pc-num">Phase 04</div>
         <span class="pc-icon">⚙️</span>
         <div class="pc-title">Build Your Agent</div>
         <div class="pc-desc">Collaboratively design a rule set and watch your agent navigate the level.</div>
         <span class="pc-arrow">▶</span>
       </a>
       <a class="phase-card" href="compete.html">
-        <div class="pc-num">Phase 03</div>
+        <div class="pc-num">Phase 05</div>
         <span class="pc-icon">🏆</span>
         <div class="pc-title">Compete</div>
         <div class="pc-desc">Each player designs their own agent — then race them on the same map.</div>
@@ -217,7 +205,6 @@
       <p class="start-sub">Designed for two users on one screen</p>
     </div>
   </main>
-
 
 </body>
 </html>

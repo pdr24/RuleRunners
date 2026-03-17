@@ -37,7 +37,7 @@ const PHASES = [
   const logo = document.createElement('a');
   logo.className   = 'logo';
   logo.href        = 'index.html';
-  logo.textContent = 'Rule-Based Parkour Agents';
+  logo.textContent = 'Rule-Runners';
 
   // Clear whatever static HTML was in the header
   header.innerHTML = '';

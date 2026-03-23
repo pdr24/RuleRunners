@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RuleRunners — Sign In</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    /* ── LOGO BLOCK ── */
+    .login-logo-wrap {
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+    }
+    .login-logo-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -40px -80px;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,128,255,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .login-app-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      color: var(--text-primary);
+      letter-spacing: 4px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .login-app-title span { color: var(--accent-cyan); text-shadow: var(--glow-cyan); }
+    .login-tagline {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      position: relative;
+    }
+
+    /* ── FORM CARD ── */
+    .login-card {
+      width: 100%;
+      max-width: 640px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan), var(--accent-purple));
+    }
+
+    /* ── PLAYER SECTIONS ── */
+    .players-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    .player-section {
+      padding: 28px 28px 24px;
+    }
+    .player-section:first-child {
+      border-right: 1px solid var(--border);
+    }
+
+    .player-heading {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .player-1-heading { color: var(--accent-cyan); }
+    .player-2-heading { color: var(--accent-orange); }
+
+    /* ── FORM FIELDS ── */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+    .field-group:last-child { margin-bottom: 0; }
+
+    .field-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .field-input,
+    .field-select {
+      background: var(--bg-deep);
+      border: 1px solid var(--border-bright);
+      color: var(--text-primary);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+      appearance: none;
+    }
+    .field-input::placeholder { color: var(--text-dim); }
+    .field-input:focus,
+    .field-select:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 0 2px rgba(0,245,255,0.08);
+    }
+    .player-section:last-child .field-input:focus,
+    .player-section:last-child .field-select:focus {
+      border-color: var(--accent-orange);
+      box-shadow: 0 0 0 2px rgba(255,107,53,0.08);
+    }
+    .field-select option { background: var(--bg-mid); }
+
+    /* inline row for first name + last initial */
+    .name-row {
+      display: grid;
+      grid-template-columns: 1fr 72px;
+      gap: 10px;
+    }
+
+    /* ── FIELD ERROR STATE ── */
+    .field-input.error,
+    .field-select.error {
+      border-color: var(--accent-red) !important;
+      box-shadow: 0 0 0 2px rgba(255,45,85,0.1) !important;
+    }
+
+    /* ── FOOTER: divider + button ── */
+    .login-footer {
+      padding: 20px 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .login-error-msg {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent-red);
+      min-height: 18px;
+      text-align: center;
+    }
+
+    .login-btn {
+      width: 100%;
+      max-width: 260px;
+      text-align: center;
+    }
+
+    @media (max-width: 560px) {
+      .players-grid { grid-template-columns: 1fr; }
+      .player-section:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── LOGO ── -->
+  <div class="login-logo-wrap">
+    <h1 class="login-app-title">Rule-Based<br><span>Parkour</span> Agents</h1>
+    <p class="login-tagline">An interactive AI learning experience for two</p>
+  </div>
+
+  <!-- ── FORM CARD ── -->
+  <div class="login-card">
+
+    <div class="players-grid">
+
+      <!-- Player 1 -->
+      <div class="player-section">
+        <div class="player-heading player-1-heading">◈ Player 1</div>
+
+        <div class="field-group">
+          <label class="field-label" for="p1-first">First Name</label>
+          <input class="field-input" id="p1-first" type="text" placeholder="e.g. Alex" maxlength="30" autocomplete="off">
+        </div>
+
+        <div class="name-row">
+          <div class="field-group" style="margin-bottom:0;">
+            <label class="field-label" for="p1-last">Last Initial</label>
+            <input class="field-input" id="p1-last" type="text" placeholder="e.g. K" maxlength="1" autocomplete="off">
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <!-- spacer to align with name row -->
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-top:16px;">
+          <label class="field-label" for="p1-grade">Grade</label>
+          <select class="field-select" id="p1-grade">
+            <option value="">— select —</option>
+            <option value="6">Grade 6</option>
+            <option value="7">Grade 7</option>
+            <option value="8">Grade 8</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Player 2 -->
+      <div class="player-section">
+        <div class="player-heading player-2-heading">◈ Player 2</div>
+
+        <div class="field-group">
+          <label class="field-label" for="p2-first">First Name</label>
+          <input class="field-input" id="p2-first" type="text" placeholder="e.g. Jordan" maxlength="30" autocomplete="off">
+        </div>
+
+        <div class="name-row">
+          <div class="field-group" style="margin-bottom:0;">
+            <label class="field-label" for="p2-last">Last Initial</label>
+            <input class="field-input" id="p2-last" type="text" placeholder="e.g. M" maxlength="1" autocomplete="off">
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <!-- spacer -->
+          </div>
+        </div>
+
+        <div class="field-group" style="margin-top:16px;">
+          <label class="field-label" for="p2-grade">Grade</label>
+          <select class="field-select" id="p2-grade">
+            <option value="">— select —</option>
+            <option value="6">Grade 6</option>
+            <option value="7">Grade 7</option>
+            <option value="8">Grade 8</option>
+          </select>
+        </div>
+      </div>
+
+    </div><!-- /.players-grid -->
+
+    <div class="login-footer">
+      <div class="login-error-msg" id="login-error"></div>
+      <button class="btn btn-primary login-btn" onclick="submitLogin()">
+        Let's Go ▶
+      </button>
+    </div>
+
+  </div><!-- /.login-card -->
+
+  <script>
+    // Force last-initial fields to uppercase as the user types
+    ['p1-last', 'p2-last'].forEach(id => {
+      document.getElementById(id).addEventListener('input', function () {
+        this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
+      });
+    });
+
+    // Force first-name fields to capitalise first letter
+    ['p1-first', 'p2-first'].forEach(id => {
+      document.getElementById(id).addEventListener('blur', function () {
+        if (this.value.length > 0) {
+          this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1);
+        }
+      });
+    });
+
+    function submitLogin() {
+      const fields = {
+        p1First: document.getElementById('p1-first'),
+        p1Last:  document.getElementById('p1-last'),
+        p1Grade: document.getElementById('p1-grade'),
+        p2First: document.getElementById('p2-first'),
+        p2Last:  document.getElementById('p2-last'),
+        p2Grade: document.getElementById('p2-grade'),
+      };
+
+      // Clear previous error states
+      Object.values(fields).forEach(el => el.classList.remove('error'));
+      document.getElementById('login-error').textContent = '';
+
+      // Validate — all fields required
+      const missing = [];
+      if (!fields.p1First.value.trim()) { fields.p1First.classList.add('error'); missing.push('Player 1 first name'); }
+      if (!fields.p1Last.value.trim())  { fields.p1Last.classList.add('error');  missing.push('Player 1 last initial'); }
+      if (!fields.p1Grade.value)        { fields.p1Grade.classList.add('error'); missing.push('Player 1 grade'); }
+      if (!fields.p2First.value.trim()) { fields.p2First.classList.add('error'); missing.push('Player 2 first name'); }
+      if (!fields.p2Last.value.trim())  { fields.p2Last.classList.add('error');  missing.push('Player 2 last initial'); }
+      if (!fields.p2Grade.value)        { fields.p2Grade.classList.add('error'); missing.push('Player 2 grade'); }
+
+      if (missing.length > 0) {
+        document.getElementById('login-error').textContent =
+          '⚠ Please fill in all fields for both players.';
+        return;
+      }
+
+      // All good — store in sessionStorage and navigate to home
+      sessionStorage.setItem('players', JSON.stringify({
+        p1: { first: fields.p1First.value.trim(), last: fields.p1Last.value.trim(), grade: fields.p1Grade.value },
+        p2: { first: fields.p2First.value.trim(), last: fields.p2Last.value.trim(), grade: fields.p2Grade.value },
+      }));
+
+      window.location.href = 'index.html';
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') submitLogin();
+    });
+  </script>
+
+</body>
+</html>

@@ -27,6 +27,18 @@ const PHASES = [
 ];
 
 (function buildNav() {
+
+  // ── Login guard ────────────────────────────────
+  // Skip guard on login.html itself and index.html
+  // (index.html has its own inline guard)
+  const currentFile = window.location.pathname.split('/').pop() || 'index.html';
+  if (currentFile !== 'login.html' && currentFile !== 'index.html') {
+    if (!sessionStorage.getItem('players')) {
+      window.location.replace('login.html');
+      return;
+    }
+  }
+  
   const header = document.querySelector('header.app-header[data-phase]');
   if (!header) return;
 

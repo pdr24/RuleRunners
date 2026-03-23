@@ -206,5 +206,14 @@
     </div>
   </main>
 
+    <script src="js/nav.js"></script>
+  <script>
+    // Redirect to login if session data is missing
+    if (!sessionStorage.getItem('players')) {
+      window.location.replace('login.html');
+    }
+  </script>
+
+
 </body>
 </html>

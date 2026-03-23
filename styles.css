@@ -516,3 +516,23 @@ body::before {
   .app-header { padding: 10px 16px; }
   .logo { font-size: 0.85rem; }
 }
+
+#adminLogoutBtn {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  font-size: 10px;
+  opacity: 0.5;
+  background: #0a0f1e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 9999;
+}
+
+#adminLogoutBtn:hover {
+  opacity: 0.8;
+}

@@ -140,7 +140,7 @@ const GUIDED_STEPS = [
     correctRule: 1,   // hazard_nearby → jump  (fires before coin_nearby, rule 2 > rule 3)
     hint: 'Both a coin AND a hazard are detected. Rules are checked top to bottom — which one comes first?',
   },
-
+  /*
   // ── Step 9 ── landed past enemy, coin now in range, no hazard
   {
     context: 'Jumped clear of the enemy. The coin is still in range, hazard left behind.',
@@ -172,7 +172,7 @@ const GUIDED_STEPS = [
       true),
     correctRule: 4,   // grounded → move_right  (move_right fires regardless of dir — it sets dir=1)
     hint: 'After changing direction the agent is on flat ground with no sensors firing. What\'s the default movement rule?',
-  },
+  }, */
 ];
 
 // ── STATE ────────────────────────────────────────

@@ -38,7 +38,7 @@ const PHASES = [
       return;
     }
   }
-  
+
   const header = document.querySelector('header.app-header[data-phase]');
   if (!header) return;
 
@@ -94,4 +94,24 @@ const PHASES = [
   });
 
   header.appendChild(nav);
+
+    // ── Admin Logout Button ───────────────────────
+  const adminBtn = document.createElement('button');
+  adminBtn.id = 'adminLogoutBtn';
+  adminBtn.textContent = '---';
+  document.body.appendChild(adminBtn);
+
+  adminBtn.addEventListener('click', () => {
+    const input = prompt('Enter admin password:');
+    if (input === null) return;
+
+    if (input === 'ecg@123') {
+      sessionStorage.clear();
+      localStorage.clear();
+      window.location.href = 'login.html';
+    } else {
+      alert('Incorrect password.');
+    }
+  });
+
 })();

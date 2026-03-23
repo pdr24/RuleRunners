@@ -50,13 +50,14 @@ function sdSnap(x, y, dir, sensors, grounded) {
 const SD_STEPS = [
 
   // Step 1 — grounded only, flat open platform
+  
   {
     context: 'The agent is standing still on the opening platform. Nothing unusual nearby.',
     camX: 0,
-    agent: sdSnap(80, 272, 1, { grounded: true }, true),
+    agent: sdSnap(40, 272, 1, { grounded: true }, true),
     correctConditions: ['grounded'],
     hint: 'The agent is standing on solid ground. Which condition describes that state?',
-  },
+  }, 
 
   // Step 2 — grounded + coin nearby
   {
@@ -86,31 +87,35 @@ const SD_STEPS = [
   },
 
   // Step 5 — grounded + hazard nearby
+  
   {
-    context: 'Landed on the next platform. A spike hazard is sitting very close.',
+    context: 'Landed on the next platform. A spike hazard is sitting very close. A coin is close behind too.',
     camX: 0,
-    agent: sdSnap(268, 272, 1, { grounded: true, hazard_nearby: true }, true),
-    correctConditions: ['grounded', 'hazard_nearby'],
+    agent: sdSnap(268, 272, 1, { grounded: true, hazard_nearby: true, coin_nearby: true }, true),
+    correctConditions: ['grounded', 'hazard_nearby', 'coin_nearby'],
     hint: 'The agent is on the ground. Look at the red dashed ring — what does that colour represent?',
-  },
+  }, 
 
+  /*
   // Step 6 — airborne + coin nearby (coin on platform ahead)
+  
   {
     context: 'The agent jumped again and is airborne. A coin on the next platform is within sensor range.',
     camX: 50,
     agent: sdSnap(340, 240, 1, { coin_nearby: true }, false),
     correctConditions: ['coin_nearby'],
     hint: 'The agent is not on the ground, but the yellow dashed ring is visible. Which condition does that ring represent?',
-  },
+  }, 
 
   // Step 7 — grounded only, elevated platform, clear
+  
   {
     context: 'The agent has landed on a higher platform. All clear — no objects in range.',
     camX: 100,
     agent: sdSnap(415, 252, 1, { grounded: true }, true),
     correctConditions: ['grounded'],
     hint: 'There are no coins, hazards, gaps, or walls near the agent right now. Just check the ground state.',
-  },
+  }, 
 
   // Step 8 — grounded + gap ahead + coin nearby
   {
@@ -122,6 +127,7 @@ const SD_STEPS = [
   },
 
   // Step 9 — grounded + hazard nearby + coin nearby
+  
   {
     context: 'On a busy platform — a patrolling enemy AND a coin are both within sensor range.',
     camX: 200,
@@ -129,25 +135,27 @@ const SD_STEPS = [
       { grounded: true, coin_nearby: true, hazard_nearby: true }, true),
     correctConditions: ['grounded', 'coin_nearby', 'hazard_nearby'],
     hint: 'Both the yellow and red sensor rings are visible. Count all the active sensors — including the ground state.',
-  },
+  }, 
 
   // Step 10 — grounded + near wall
+  
   {
     context: 'The agent has walked into the right edge of the platform — a wall blocks the path.',
     camX: 200,
     agent: sdSnap(636, 272, 1, { grounded: true, near_wall: true }, true),
     correctConditions: ['grounded', 'near_wall'],
     hint: 'The purple ring is glowing around the agent. It is also standing on solid ground.',
-  },
+  }, 
 
   // Step 11 — airborne + hazard nearby (enemy jumped over but still in range)
+  
   {
     context: 'The agent is in the air after jumping over the enemy. The enemy is still within sensor range.',
     camX: 200,
     agent: sdSnap(600, 248, 1, { hazard_nearby: true }, false),
     correctConditions: ['hazard_nearby'],
     hint: 'The agent is airborne (not grounded), but the red dashed ring is still active because the enemy is close.',
-  },
+  }, */
 ];
 
 // ── STATE ──────────────────────────────────────────────

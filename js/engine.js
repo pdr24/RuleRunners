@@ -4,14 +4,20 @@
    ═══════════════════════════════════════════════ */
 
 // ── PHYSICS CONSTANTS ──────────────────────────
-const GRAVITY        = 0.5;
-const JUMP_V         = -11;
-const MOVE_SPEED     = 2.5;
-const DASH_SPEED     = 5;
 const SENSOR_GAP_DIST  = 40;
 const SENSOR_COIN_DIST = 80;
 const SENSOR_HAZ_DIST  = 60;
 const SENSOR_WALL_DIST = 16;
+
+const GRAVITY = 0.43;
+const JUMP_V = -8.8;
+const MOVE_SPEED = 1.5;
+const DASH_SPEED = 3;
+
+const JUMP_FORWARD_SPEED = 2.6;
+const GROUND_FRICTION = 0.82;
+const AIR_FRICTION = 0.98;
+const MAX_FALL = 10;
 
 // ── LABEL MAPS (used by all pages) ─────────────
 const COND_LABELS = {
@@ -199,7 +205,7 @@ function evaluateRules(agent, rules) {
 }
 
 // ── ACTION APPLICATOR ────────────────────────────
-function applyAction(agent, action) {
+function applyActionOLD(agent, action) {
   if (!action) return;
   switch (action) {
     case 'jump':       if (agent.grounded) { agent.vy = JUMP_V; agent.vx = agent.dir * MOVE_SPEED * 3; agent.grounded = false; } break;
@@ -210,12 +216,49 @@ function applyAction(agent, action) {
   }
 }
 
+function applyAction(agent, action) {
+  if (!action) return;
+
+  switch (action) {
+    case 'jump':
+      if (agent.grounded) {
+        agent.vy = JUMP_V;
+        agent.vx = agent.dir * JUMP_FORWARD_SPEED;
+        agent.grounded = false;
+      }
+      break;
+
+    case 'move_left':
+      agent.vx = -MOVE_SPEED;
+      agent.dir = -1;
+      break;
+
+    case 'move_right':
+      agent.vx = MOVE_SPEED;
+      agent.dir = 1;
+      break;
+
+    case 'dash':
+      agent.vx = agent.dir * DASH_SPEED;
+      break;
+
+    case 'change_dir':
+      agent.dir *= -1;
+      agent.vx = agent.dir * MOVE_SPEED;
+      break;
+  }
+}
+
 // ── PHYSICS STEP ─────────────────────────────────
 function physicsStep(agent, level) {
-  agent.vx *= 0.82;
+
+  agent.vx *= agent.grounded ? GROUND_FRICTION : AIR_FRICTION;
+
   agent.vy += GRAVITY;
-  agent.x  += agent.vx;
-  agent.y  += agent.vy;
+  if (agent.vy > MAX_FALL) agent.vy = MAX_FALL;
+
+  agent.x += agent.vx;
+  agent.y += agent.vy;
 
   agent.grounded = false;
   for (const p of level.platforms) {

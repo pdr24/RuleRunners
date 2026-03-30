@@ -442,34 +442,63 @@ function drawLevel(ctx, W, H, level, agent, camX, agentColor, showSensorOverlays
 
     // Sensor overlays
     const s = ag.sensors;
-    
-    if (s.gap_ahead) {
+
+    // Always-visible neutral dashed sensor ring
+    const ringCx = agX + ag.w / 2;
+    const ringCy = agY + ag.h / 2;
+    const ringR  = SENSOR_RANGE;
+
+    ctx.beginPath();
+    ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(180,180,180,0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Helper to draw a colored arc segment on the ring
+    function drawSensorArc(centerAngle, arcWidth, color) {
       ctx.beginPath();
-      ctx.arc(agX + ag.w/2 + ag.dir * SENSOR_GAP_DIST, agY + ag.h, 12, 0, Math.PI*2);
-      ctx.fillStyle = 'rgba(0,245,255,0.15)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,245,255,0.5)';
-      ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.arc(
+        ringCx,
+        ringCy,
+        ringR,
+        centerAngle - arcWidth / 2,
+        centerAngle + arcWidth / 2
+      );
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.stroke();
     }
+
+    // Sensor overlays as colored sections of the ring
     if (s.coin_nearby) {
-      ctx.beginPath();
-      ctx.arc(agX + ag.w/2, agY + ag.h/2, SENSOR_COIN_DIST, 0, Math.PI*2);
-      ctx.strokeStyle = 'rgba(255,214,10,0.15)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+      // top-right-ish
+      drawSensorArc(-Math.PI / 4, Math.PI / 3, 'rgba(255,214,10,0.95)');
     }
+
+    if (s.gap_ahead) {
+      // directly in front of the agent
+      const gapAngle = ag.dir === 1 ? 0 : Math.PI;
+      drawSensorArc(gapAngle, Math.PI / 3, 'rgba(0,245,255,0.95)');
+    }
+
     if (s.hazard_nearby) {
-      ctx.beginPath();
-      ctx.arc(agX + ag.w/2, agY + ag.h/2, SENSOR_HAZ_DIST, 0, Math.PI*2);
-      ctx.strokeStyle = 'rgba(255,45,85,0.25)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+      // bottom-right-ish
+      const hazardAngle = ag.dir === 1 ? Math.PI / 4 : 3 * Math.PI / 4;
+      drawSensorArc(hazardAngle, Math.PI / 3, 'rgba(255,45,85,0.95)');
     }
+
     if (s.near_wall) {
-      ctx.beginPath();
-      ctx.arc(agX + ag.w/2, agY + ag.h/2, 20, 0, Math.PI*2);
-      ctx.strokeStyle = 'rgba(139,92,246,0.5)';
-      ctx.lineWidth = 1.5; ctx.stroke();
+      // directly behind / side depending on direction
+      const wallAngle = ag.dir === 1 ? Math.PI : 0;
+      drawSensorArc(wallAngle, Math.PI / 3, 'rgba(139,92,246,0.95)');
+    }
+
+    if (s.grounded) {
+      // bottom
+      drawSensorArc(Math.PI / 2, Math.PI / 3, 'rgba(0,255,136,0.95)');
     }
   }
 

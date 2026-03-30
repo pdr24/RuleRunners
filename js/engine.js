@@ -437,27 +437,40 @@ function drawLevel(ctx, W, H, level, agent, camX, agentColor, showSensorOverlays
                : agentColor === 'orange' ? '#ff6b35'
                : '#00ff88';
 
+  
   if (showSensorOverlays)
   {
-
     // Sensor overlays
     const s = ag.sensors;
 
-    // Always-visible neutral dashed sensor ring
+    // Half-ring in front of the agent
     const ringCx = agX + ag.w / 2;
     const ringCy = agY + ag.h / 2;
     const ringR  = SENSOR_RANGE;
 
+    // Facing right => front half is right semicircle
+    // Facing left  => front half is left semicircle
+    const frontBaseAngle = ag.dir === 1 ? 0 : Math.PI;
+    const frontStartAngle = frontBaseAngle - Math.PI / 2;
+    const frontEndAngle   = frontBaseAngle + Math.PI / 2;
+
+    // Always-visible neutral dashed half-ring
     ctx.beginPath();
-    ctx.arc(ringCx, ringCy, ringR, 0, Math.PI * 2);
+    ctx.arc(ringCx, ringCy, ringR, frontStartAngle, frontEndAngle);
     ctx.strokeStyle = 'rgba(180,180,180,0.35)';
     ctx.lineWidth = 1.5;
     ctx.setLineDash([5, 5]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Helper to draw a colored arc segment on the ring
-    function drawSensorArc(centerAngle, arcWidth, color) {
+    // Helper to draw a colored arc segment on the front half of the ring
+    // relativeAngle is measured relative to the direction the agent faces:
+    //   0 = directly ahead
+    //  -Math.PI/4 = upper/front
+    //   Math.PI/4 = lower/front
+    function drawSensorArc(relativeAngle, arcWidth, color) {
+      const centerAngle = frontBaseAngle + relativeAngle;
+
       ctx.beginPath();
       ctx.arc(
         ringCx,
@@ -472,33 +485,30 @@ function drawLevel(ctx, W, H, level, agent, camX, agentColor, showSensorOverlays
       ctx.stroke();
     }
 
-    // Sensor overlays as colored sections of the ring
+    // Sensor overlays as colored sections of the front half-ring
     if (s.coin_nearby) {
-      // top-right-ish
-      drawSensorArc(-Math.PI / 4, Math.PI / 3, 'rgba(255,214,10,0.95)');
+      // upper-front
+      drawSensorArc(-Math.PI / 4, Math.PI / 4, 'rgba(255,214,10,0.95)');
     }
 
     if (s.gap_ahead) {
-      // directly in front of the agent
-      const gapAngle = ag.dir === 1 ? 0 : Math.PI;
-      drawSensorArc(gapAngle, Math.PI / 3, 'rgba(0,245,255,0.95)');
+      // directly in front
+      drawSensorArc(0, Math.PI / 4, 'rgba(0,245,255,0.95)');
     }
 
     if (s.hazard_nearby) {
-      // bottom-right-ish
-      const hazardAngle = ag.dir === 1 ? Math.PI / 4 : 3 * Math.PI / 4;
-      drawSensorArc(hazardAngle, Math.PI / 3, 'rgba(255,45,85,0.95)');
+      // lower-front
+      drawSensorArc(Math.PI / 4, Math.PI / 4, 'rgba(255,45,85,0.95)');
     }
 
     if (s.near_wall) {
-      // directly behind / side depending on direction
-      const wallAngle = ag.dir === 1 ? Math.PI : 0;
-      drawSensorArc(wallAngle, Math.PI / 3, 'rgba(139,92,246,0.95)');
+      // also on the front half, slightly wider
+      drawSensorArc(0, Math.PI / 6, 'rgba(139,92,246,0.95)');
     }
 
     if (s.grounded) {
-      // bottom
-      drawSensorArc(Math.PI / 2, Math.PI / 3, 'rgba(0,255,136,0.95)');
+      // bottom-front
+      drawSensorArc(Math.PI / 4, Math.PI / 3, 'rgba(0,255,136,0.95)');
     }
   }
 

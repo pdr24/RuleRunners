@@ -228,13 +228,21 @@
     <div class="intro-hero">
       <div class="grid-bg"></div>
       <h1 class="hero-title">What is a <span>Rule-Based</span> AI System?</h1>
+      <h1 class="hero-subtitle">Read this page! You will be quizzed on this later! 😉</h1>
+
     </div>
 
     <div class="intro-grid">
       <div class="intro-panel">
         <h3>🤖 The Core Idea</h3>
-        <p>A <strong>rule-based AI</strong> doesn't think or learn — it simply follows a list of <strong>IF → THEN</strong> rules you write. Every action it takes is driven by your logic, nothing more.</p>
-        <p style="margin-top:10px;">The agent checks its sensors, finds the first matching rule, and executes the action. Simple, predictable, powerful.</p>
+        <p>A <strong>rule-based AI</strong> doesn't think or learn — it follows a list of <strong>IF → THEN</strong> rules. <br>These <strong>rules</strong> are made of <strong>conditions and actions</strong>. </p>
+        <p style="margin-top:10px;">The agent checks its sensors, finds the <em>first</em> matching rule, and executes the action. </p>
+        <div class="rule-example">
+          <span class="rule-if">IF</span>
+          <span class="rule-cond">[condition]</span>
+          <span class="rule-then">THEN</span>
+          <span class="rule-action">[action]</span>
+        </div>
         <div class="rule-example">
           <span class="rule-if">IF</span>
           <span class="rule-cond">gap_ahead</span>
@@ -245,7 +253,7 @@
 
       <div class="intro-panel">
         <h3>📡 Sensors &amp; Conditions</h3>
-        <p>The agent uses <strong>sensors</strong> to detect its environment. These become the conditions in your IF statements.</p>
+        <p>The agent uses <strong>sensors</strong> to detect its environment and figure out the <strong>conditions</strong> in your IF statements.</p>
         <ul class="what-learn-list">
           <li><strong>Gap ahead</strong> — a drop in the floor is detected</li>
           <li><strong>Coin nearby</strong> — a coin is within range</li>
@@ -257,7 +265,7 @@
 
       <div class="intro-panel">
         <h3>⚙️ Actions</h3>
-        <p>The THEN side of a rule tells the agent what to <strong>do</strong> when the condition fires. Rules are checked from top to bottom — <strong>order matters!</strong></p>
+        <p>The THEN side of a rule tells the agent what <strong>action</strong> to take when a condition matches. Rules are checked from top to bottom — <strong>order matters!</strong></p>
         <ul class="what-learn-list">
           <li><strong>Jump</strong> — leap upward</li>
           <li><strong>Move left / Move right</strong> — walk horizontally</li>

@@ -12,7 +12,7 @@ let competeCamA   = 0,   competeCamB   = 0;
 let competeRunning = false;
 let competeAnimId  = null;
 let competeLastTime = 0;
-let competeTimerVal = 90;
+let competeTimerVal = 20;
 let competeTimerInterval = null;
 let competeScoreA = 0, competeScoreB = 0;
 
@@ -34,13 +34,13 @@ function initCompete() {
   competeAgentA = createAgent(20);
   competeAgentB = createAgent(20);
   competeCamA = 0; competeCamB = 0;
-  competeTimerVal = 90;
+  competeTimerVal = 20;
   competeScoreA = 0; competeScoreB = 0;
   competeRunning = false;
   if (competeAnimId) cancelAnimationFrame(competeAnimId);
   clearInterval(competeTimerInterval);
 
-  document.getElementById('compete-timer').textContent = '90';
+  document.getElementById('compete-timer').textContent = '20';
   document.getElementById('compete-timer').classList.remove('urgent');
   document.getElementById('score-a').textContent = '0';
   document.getElementById('score-b').textContent = '0';

@@ -24,6 +24,7 @@ const PHASES = [
   { id: '03', label: '03', title: 'Guided Walkthrough',     href: 'guidedWalkthrough.html' },
   { id: '04',  label: '04',  title: 'Build Your Agent',       href: 'buildAgent.html'        },
   { id: '05',  label: '05',  title: 'Compete',                href: 'compete.html'           },
+  { id: '06', label: '06', title: 'Story',                  href: 'story.html' },
 ];
 
 (function buildNav() {

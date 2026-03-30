@@ -20,7 +20,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 60px 40px;
+      padding: 2% 2% 2% 2%;
       position: relative;
       overflow: hidden;
     }
@@ -42,13 +42,13 @@
     }
     .hero-title {
       font-family: 'Orbitron', sans-serif;
-      font-size: clamp(2.2rem, 6vw, 4rem);
-      font-weight: 900;
+      font-size: clamp(2.2rem, 6vw, 2.75rem);
+      font-weight: 600;
       color: var(--text-primary);
       letter-spacing: 4px;
-      line-height: 1.1;
+      line-height: 1.0;
       position: relative;
-      margin-bottom: 20px;
+      margin-bottom: 1%;
     }
     .hero-title span { color: var(--accent-cyan); text-shadow: var(--glow-cyan); }
     .hero-subtitle {
@@ -57,23 +57,34 @@
       font-weight: 300;
       letter-spacing: 2px;
       position: relative;
-      margin-bottom: 60px;
-      max-width: 480px;
+      margin-bottom: 2.5%;
+      max-width: 90%;
     }
 
     /* Phase cards */
     .phase-cards {
-      display: flex;
-      gap: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 25vw);
+      gap: 2%;
       justify-content: center;
-      flex-wrap: wrap;
       position: relative;
-      margin-bottom: 48px;
+      margin-bottom: 1.5%;
+    }
+
+    @media (max-width: 760px) {
+      .phase-cards {
+        grid-template-columns: repeat(2, 220px);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .phase-cards {
+        grid-template-columns: 220px;
+      }
     }
     .phase-card {
       background: var(--bg-panel);
       border: 1px solid var(--border);
-      width: 220px;
       padding: 24px 20px;
       text-align: left;
       position: relative;
@@ -89,12 +100,18 @@
       height: 2px;
     }
     .phase-card:nth-child(1)::before { background: linear-gradient(90deg, transparent, var(--accent-blue), transparent); }
-    .phase-card:nth-child(2)::before { background: linear-gradient(90deg, transparent, var(--accent-purple), transparent); }
-    .phase-card:nth-child(3)::before { background: linear-gradient(90deg, transparent, var(--accent-green), transparent); }
+    .phase-card:nth-child(2)::before { background: linear-gradient(90deg, transparent, var(--accent-yellow), transparent); }
+    .phase-card:nth-child(3)::before { background: linear-gradient(90deg, transparent, var(--accent-purple), transparent); }
+    .phase-card:nth-child(4)::before { background: linear-gradient(90deg, transparent, var(--accent-red), transparent); }
+    .phase-card:nth-child(5)::before { background: linear-gradient(90deg, transparent, var(--accent-green), transparent); }
+    .phase-card:nth-child(6)::before { background: linear-gradient(90deg, transparent, var(--accent-orange), transparent); }
     .phase-card:hover { transform: translateY(-3px); }
     .phase-card:nth-child(1):hover { border-color: var(--accent-blue); }
-    .phase-card:nth-child(2):hover { border-color: var(--accent-purple); }
-    .phase-card:nth-child(3):hover { border-color: var(--accent-green); }
+    .phase-card:nth-child(2):hover { border-color: var(--accent-yellow); }
+    .phase-card:nth-child(3):hover { border-color: var(--accent-purple); }
+    .phase-card:nth-child(4):hover { border-color: var(--accent-red); }
+    .phase-card:nth-child(5):hover { border-color: var(--accent-green); }
+    .phase-card:nth-child(6):hover { border-color: var(--accent-orange); }
     .phase-card .pc-num {
       font-family: 'Orbitron', sans-serif;
       font-size: 0.6rem;
@@ -103,7 +120,7 @@
       margin-bottom: 8px;
       text-transform: uppercase;
     }
-    .phase-card .pc-icon { font-size: 1.6rem; margin-bottom: 10px; display: block; }
+    .phase-card .pc-icon { font-size: 1.2rem; margin-bottom: 2.5%; display: block; }
     .phase-card .pc-title {
       font-family: 'Orbitron', sans-serif;
       font-size: 0.8rem;
@@ -160,8 +177,7 @@
 
   <main class="hero">
     <div class="grid-bg"></div>
-    <p class="hero-eyebrow">An Interactive Learning Experience for Two Players</p>
-    <h1 class="hero-title">Rule-Based<br><span>Parkour</span> AI Agents</h1>
+    <h1 class="hero-title">Rule-Based <span>Parkour</span> AI Agents</h1>
     <p class="hero-subtitle">Build AI agents using IF → THEN logic, then compete head‑to‑head on an identical parkour map.</p>
 
     <div class="phase-cards">
@@ -200,11 +216,18 @@
         <div class="pc-desc">Each player designs their own agent — then race them on the same map.</div>
         <span class="pc-arrow">▶</span>
       </a>
+
+      <a class="phase-card" href="story.html">
+        <div class="pc-num">Phase 06</div>
+        <span class="pc-icon">🏆</span>
+        <div class="pc-title">Story</div>
+        <div class="pc-desc">Write and draw about your own rule-based system!</div>
+        <span class="pc-arrow">▶</span>
+      </a>
     </div>
 
     <div class="start-btn-wrap">
       <a class="btn btn-primary" href="whatIsRuleBasedAI.html">Start Here ▶</a>
-      <p class="start-sub">Designed for two users on one screen</p>
     </div>
   </main>
 

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   guided.js — Phase 1.5: Guided Walkthrough
+   guided.js — Phase 3: Guided Walkthrough
    ═══════════════════════════════════════════════
 
    The predefined agent uses these 5 rules (in order):
@@ -244,6 +244,40 @@ function drawSnapshot() {
   const canvas = document.getElementById('guided-canvas');
   const ctx    = canvas.getContext('2d');
   drawLevel(ctx, canvas.width, canvas.height, animLevel, step.agent, step.camX, 'green');
+  drawSensorRing(ctx, step.agent, step.camX);
+}
+
+function drawSensorRing(ctx, agent, camX) {
+  const ox = -camX;
+  const cx = agent.x + ox + agent.w / 2;
+  const cy = agent.y + agent.h / 2;
+
+  // Determine facing direction
+  const facingAngle = agent.facing === -1 ? Math.PI : 0;
+
+  const startAngle = facingAngle - Math.PI / 2;
+  const endAngle   = facingAngle + Math.PI / 2;
+
+  ctx.save();
+
+  // Filled half circle
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, SENSOR_RANGE, startAngle, endAngle);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fill();
+
+  // Dashed outline
+  ctx.beginPath();
+  ctx.arc(cx, cy, SENSOR_RANGE, startAngle, endAngle);
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
 }
 
 // ── SENSOR BADGES ────────────────────────────────
@@ -387,6 +421,7 @@ function startAnimation(fromAgent, toAgent, fromCam, toCam, onDone) {
     const canvas = document.getElementById('guided-canvas');
     const ctx    = canvas.getContext('2d');
     drawLevel(ctx, canvas.width, canvas.height, animLevel, animAgent, camX, 'green');
+    drawSensorRing(ctx, animAgent, camX);
 
     if (animProgress < ANIM_DURATION) {
       animId = requestAnimationFrame(tick);

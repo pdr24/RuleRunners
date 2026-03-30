@@ -172,15 +172,25 @@ function sdDrawSensorRings(ctx, agent, camX) {
   const cx  = agX + agent.w / 2;
   const cy  = agY + agent.h / 2;
 
+  // Determine facing direction
+  const facingAngle = agent.facing === -1 ? Math.PI : 0;
+
+  const startAngle = facingAngle - Math.PI / 2;
+  const endAngle   = facingAngle + Math.PI / 2;
+
   ctx.save();
 
+  // Filled half circle
   ctx.beginPath();
-  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
+  ctx.moveTo(cx, cy);
+  ctx.arc(cx, cy, SENSOR_RANGE, startAngle, endAngle);
+  ctx.closePath();
   ctx.fillStyle = 'rgba(255,255,255,0.04)';
   ctx.fill();
 
+  // Dashed outline
   ctx.beginPath();
-  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
+  ctx.arc(cx, cy, SENSOR_RANGE, startAngle, endAngle);
   ctx.strokeStyle = 'rgba(255,255,255,0.55)';
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 4]);

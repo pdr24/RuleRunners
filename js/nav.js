@@ -18,7 +18,7 @@
      other files need to change.
    ═══════════════════════════════════════════════ */
 
-const PHASES = [
+const PHASES_ORIG = [
   { id: '01', label: '01', title: 'What Is Rule-Based AI?',           href: 'whatIsRuleBasedAI.html'              },
   { id: '02', label: '02', title: 'Sensor Detection',                 href: 'sensorDetection.html'               },
   { id: '03', label: '03', title: 'Guided Walkthrough',               href: 'guidedWalkthrough.html'             },
@@ -27,6 +27,15 @@ const PHASES = [
   { id: '06', label: '06', title: 'Build Your Agent',                 href: 'buildAgent.html'                    },
   { id: '07', label: '07', title: 'Compete',                          href: 'compete.html'                       },
   { id: '08', label: '08', title: 'Story',                            href: 'story.html'                         },
+];
+
+const PHASES = [
+  { id: '01', label: '01', title: 'What Is Rule-Based AI?',           href: 'whatIsRuleBasedAI.html'              },
+  { id: '02', label: '02', title: 'Practice Collaborative',           href: 'practiceCollaborativeWalkthrough.html' },
+  { id: '03', label: '03', title: 'Collaborative Walkthrough',        href: 'collaborativeWalkthrough.html'      },
+  { id: '04', label: '04', title: 'Build Your Agent',                 href: 'buildAgent.html'                    },
+  { id: '05', label: '05', title: 'Compete',                          href: 'compete.html'                       },
+  { id: '06', label: '06', title: 'Story',                            href: 'story.html'                         },
 ];
 
 (function buildNav() {

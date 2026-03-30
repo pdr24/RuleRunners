@@ -4,9 +4,10 @@
    ═══════════════════════════════════════════════ */
 
 // ── PHYSICS CONSTANTS ──────────────────────────
-const SENSOR_GAP_DIST  = 40;
-const SENSOR_COIN_DIST = 80;
-const SENSOR_HAZ_DIST  = 60;
+const SENSOR_RANGE   = 50;   // universal detection radius for all sensors
+const SENSOR_GAP_DIST  = SENSOR_RANGE;
+const SENSOR_COIN_DIST = SENSOR_RANGE;
+const SENSOR_HAZ_DIST  = SENSOR_RANGE;
 const SENSOR_WALL_DIST = 16;
 
 const GRAVITY = 0.43;

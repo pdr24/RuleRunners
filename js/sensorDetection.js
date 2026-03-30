@@ -41,23 +41,22 @@ function sdSnap(x, y, dir, sensors, grounded) {
   };
 }
 
-/* ── THE 11 STEPS ──────────────────────────────────────
+/* ── THE STEPS ─────────────────────────────────────────
    correctConditions: array of active condition keys,
                       or ['__none__'] when nothing is active.
    hint: shown after the first wrong attempt.
    context: situation description above the canvas.
-   ─────────────────────────────────────────────────────── */
+   ───────────────────────────────────────────────────── */
 const SD_STEPS = [
 
   // Step 1 — grounded only, flat open platform
-  
   {
     context: 'The agent is standing still on the opening platform. Nothing unusual nearby.',
     camX: 0,
     agent: sdSnap(40, 272, 1, { grounded: true }, true),
     correctConditions: ['grounded'],
     hint: 'The agent is standing on solid ground. Which condition describes that state?',
-  }, 
+  },
 
   // Step 2 — grounded + coin nearby
   {
@@ -81,92 +80,31 @@ const SD_STEPS = [
   {
     context: 'The agent is mid-jump, sailing over the gap. No objects are close.',
     camX: 0,
-    agent: sdSnap(210, 230, 1, {}, false),
+    agent: sdSnap(210, 200, 1, {}, false),
     correctConditions: [NONE_KEY],
     hint: 'The agent is in the air with no coins, hazards, or walls nearby. None of the five conditions apply here.',
   },
 
-  // Step 5 — grounded + hazard nearby
-  
+  // Step 5 — grounded + hazard nearby + coin nearby
   {
     context: 'Landed on the next platform. A spike hazard is sitting very close. A coin is close behind too.',
     camX: 0,
     agent: sdSnap(268, 272, 1, { grounded: true, hazard_nearby: true, coin_nearby: true }, true),
     correctConditions: ['grounded', 'hazard_nearby', 'coin_nearby'],
     hint: 'The agent is on the ground. Look at the red dashed ring — what does that colour represent?',
-  }, 
-
-  /*
-  // Step 6 — airborne + coin nearby (coin on platform ahead)
-  
-  {
-    context: 'The agent jumped again and is airborne. A coin on the next platform is within sensor range.',
-    camX: 50,
-    agent: sdSnap(340, 240, 1, { coin_nearby: true }, false),
-    correctConditions: ['coin_nearby'],
-    hint: 'The agent is not on the ground, but the yellow dashed ring is visible. Which condition does that ring represent?',
-  }, 
-
-  // Step 7 — grounded only, elevated platform, clear
-  
-  {
-    context: 'The agent has landed on a higher platform. All clear — no objects in range.',
-    camX: 100,
-    agent: sdSnap(415, 252, 1, { grounded: true }, true),
-    correctConditions: ['grounded'],
-    hint: 'There are no coins, hazards, gaps, or walls near the agent right now. Just check the ground state.',
-  }, 
-
-  // Step 8 — grounded + gap ahead + coin nearby
-  {
-    context: 'The elevated platform ends soon, and a coin is floating just beyond the edge.',
-    camX: 100,
-    agent: sdSnap(450, 252, 1, { grounded: true, gap_ahead: true, coin_nearby: true }, true),
-    correctConditions: ['grounded', 'gap_ahead', 'coin_nearby'],
-    hint: 'Three things are happening at once here. Is the agent grounded? Is the floor ahead solid? Is there a coin in range?',
   },
 
-  // Step 9 — grounded + hazard nearby + coin nearby
-  
-  {
-    context: 'On a busy platform — a patrolling enemy AND a coin are both within sensor range.',
-    camX: 200,
-    agent: sdSnap(535, 272, 1,
-      { grounded: true, coin_nearby: true, hazard_nearby: true }, true),
-    correctConditions: ['grounded', 'coin_nearby', 'hazard_nearby'],
-    hint: 'Both the yellow and red sensor rings are visible. Count all the active sensors — including the ground state.',
-  }, 
-
-  // Step 10 — grounded + near wall
-  
-  {
-    context: 'The agent has walked into the right edge of the platform — a wall blocks the path.',
-    camX: 200,
-    agent: sdSnap(636, 272, 1, { grounded: true, near_wall: true }, true),
-    correctConditions: ['grounded', 'near_wall'],
-    hint: 'The purple ring is glowing around the agent. It is also standing on solid ground.',
-  }, 
-
-  // Step 11 — airborne + hazard nearby (enemy jumped over but still in range)
-  
-  {
-    context: 'The agent is in the air after jumping over the enemy. The enemy is still within sensor range.',
-    camX: 200,
-    agent: sdSnap(600, 248, 1, { hazard_nearby: true }, false),
-    correctConditions: ['hazard_nearby'],
-    hint: 'The agent is airborne (not grounded), but the red dashed ring is still active because the enemy is close.',
-  }, */
 ];
 
 // ── STATE ──────────────────────────────────────────────
 let sdStep         = 0;
 let sdWrongCount   = 0;
 let sdTotalSteps   = SD_STEPS.length;
-let sdStepCorrect  = 0;   // steps fully correct on first try
-let sdCondCorrect  = 0;   // individual condition answers correct (TP + TN)
-let sdCondTotal    = 0;   // total individual condition evaluations
-let sdSelected     = new Set();   // currently selected condition keys
-let sdLocked       = false;       // true once correct answer is accepted
+let sdStepCorrect  = 0;
+let sdCondCorrect  = 0;
+let sdCondTotal    = 0;
+let sdSelected     = new Set();
+let sdLocked       = false;
 let sdAnimating    = false;
 
 // Animation
@@ -193,39 +131,156 @@ function sdResizeCanvas() {
 
 // ── RENDER STEP ────────────────────────────────────────
 function sdRenderStep() {
-  const step      = SD_STEPS[sdStep];
-  sdWrongCount    = 0;
-  sdSelected      = new Set();
-  sdLocked        = false;
+  const step   = SD_STEPS[sdStep];
+  sdWrongCount = 0;
+  sdSelected   = new Set();
+  sdLocked     = false;
 
-  // Progress
   document.getElementById('sd-step-counter').textContent =
     `Step ${sdStep + 1} of ${sdTotalSteps}`;
   document.getElementById('sd-progress-fill').style.width =
     ((sdStep / sdTotalSteps) * 100) + '%';
 
-  // Context
   document.getElementById('sd-step-context').textContent = step.context;
 
-  // Choices
   sdRenderChoices();
 
-  // Reset feedback
   sdSetFeedback('', '');
-  document.getElementById('sd-hint-box').style.display   = 'none';
-  document.getElementById('sd-next-btn').style.display   = 'none';
-  document.getElementById('sd-check-btn').style.display  = '';
-  document.getElementById('sd-check-btn').disabled       = false;
-  document.getElementById('sd-next-btn').disabled        = false;
+  document.getElementById('sd-hint-box').style.display  = 'none';
+  document.getElementById('sd-next-btn').style.display  = 'none';
+  document.getElementById('sd-check-btn').style.display = '';
+  document.getElementById('sd-check-btn').disabled      = false;
+  document.getElementById('sd-next-btn').disabled       = false;
 
   sdDrawSnapshot();
 }
 
+// ── DRAW SNAPSHOT ──────────────────────────────────────
+// Renders the frozen level then draws bold sensor rings on top.
 function sdDrawSnapshot() {
   const step   = SD_STEPS[sdStep];
   const canvas = document.getElementById('sd-canvas');
-  drawLevel(canvas.getContext('2d'), canvas.width, canvas.height,
-            sdAnimLevel, step.agent, step.camX, 'green');
+  const ctx    = canvas.getContext('2d');
+  drawLevel(ctx, canvas.width, canvas.height, sdAnimLevel, step.agent, step.camX, 'green');
+  sdDrawSensorRings(ctx, step.agent, step.camX);
+}
+
+function sdDrawSensorRings(ctx, agent, camX) {
+  const ox  = -camX;
+  const agX = agent.x + ox;
+  const agY = agent.y;
+  const cx  = agX + agent.w / 2;
+  const cy  = agY + agent.h / 2;
+
+  ctx.save();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.04)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6, 4]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+}
+
+
+// ── SENSOR RINGS OVERLAY ───────────────────────────────
+// Draws bold, labelled sensor rings so students can clearly
+// see which sensors are active at each frozen snapshot.
+function sdDrawSensorRings4(ctx, agent, camX) {
+  const ox  = -camX;
+  const agX = agent.x + ox;
+  const agY = agent.y;
+  const cx  = agX + agent.w / 2;
+  const cy  = agY + agent.h / 2;
+  const s   = agent.sensors;
+
+  ctx.save();
+
+  // Gap ahead — cyan circle at foot level ahead of agent
+  if (s.gap_ahead) {
+    const gx = agX + agent.w / 2 + agent.dir * SENSOR_GAP_DIST;
+    const gy = agY + agent.h;
+    ctx.beginPath();
+    ctx.arc(gx, gy, 18, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,245,255,0.18)';
+    ctx.fill();
+    ctx.strokeStyle = '#00f5ff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.font = 'bold 9px Orbitron, monospace';
+    ctx.fillStyle = '#00f5ff';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAP', gx, gy - 22);
+  }
+
+  // Coin nearby — yellow dashed circle at coin sensor radius
+  if (s.coin_nearby) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, SENSOR_COIN_DIST, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ffd60a';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = 'bold 9px Orbitron, monospace';
+    ctx.fillStyle = '#ffd60a';
+    ctx.textAlign = 'center';
+    ctx.fillText('COIN', cx, cy - SENSOR_COIN_DIST - 6);
+  }
+
+  // Hazard nearby — red dashed circle at hazard sensor radius
+  if (s.hazard_nearby) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, SENSOR_HAZ_DIST, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ff2d55';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = 'bold 9px Orbitron, monospace';
+    ctx.fillStyle = '#ff2d55';
+    ctx.textAlign = 'center';
+    ctx.fillText('HAZARD', cx, cy - SENSOR_HAZ_DIST - 6);
+  }
+
+  // Near wall — purple solid circle
+  if (s.near_wall) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.font = 'bold 9px Orbitron, monospace';
+    ctx.fillStyle = '#8b5cf6';
+    ctx.textAlign = 'center';
+    ctx.fillText('WALL', cx, cy - 30);
+  }
+
+  // Grounded — green arc under the agent's feet
+  if (s.grounded) {
+    ctx.beginPath();
+    ctx.arc(agX + agent.w / 2, agY + agent.h, 20, 0, Math.PI);
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.font = 'bold 9px Orbitron, monospace';
+    ctx.fillStyle = '#00ff88';
+    ctx.textAlign = 'center';
+    ctx.fillText('GROUND', agX + agent.w / 2, agY + agent.h + 30);
+  }
+
+  ctx.restore();
 }
 
 // ── CHOICE RENDERING ──────────────────────────────────
@@ -233,7 +288,6 @@ function sdRenderChoices(revealCorrect = false, wrongKeys = null) {
   const step = SD_STEPS[sdStep];
   const list = document.getElementById('sd-choices');
 
-  // Build full option list: 5 conditions + none
   const options = [...ALL_CONDITIONS, { key: NONE_KEY, label: 'None of the above', color: '#3a5070' }];
 
   list.innerHTML = options.map(opt => {
@@ -246,7 +300,6 @@ function sdRenderChoices(revealCorrect = false, wrongKeys = null) {
     else if (isWrong)                cls += ' sd-choice-wrong';
     else if (isSelected)             cls += ' sd-choice-selected';
 
-    // dot colour
     const dotStyle = opt.key !== NONE_KEY
       ? `background:${opt.color};`
       : `background: var(--text-dim);`;
@@ -265,7 +318,6 @@ function sdToggleChoice(key) {
   if (sdLocked || sdAnimating) return;
   if (document.getElementById('sd-next-btn').style.display !== 'none') return;
 
-  // "None" is mutually exclusive with everything else
   if (key === NONE_KEY) {
     if (sdSelected.has(NONE_KEY)) {
       sdSelected.delete(NONE_KEY);
@@ -274,7 +326,7 @@ function sdToggleChoice(key) {
       sdSelected.add(NONE_KEY);
     }
   } else {
-    sdSelected.delete(NONE_KEY);   // deselect none if a real condition chosen
+    sdSelected.delete(NONE_KEY);
     if (sdSelected.has(key)) {
       sdSelected.delete(key);
     } else {
@@ -294,24 +346,17 @@ function sdCheckAnswer() {
 
   const step    = SD_STEPS[sdStep];
   const correct = new Set(step.correctConditions);
-
-  // Compare sets
   const isFullyCorrect = setsEqual(sdSelected, correct);
 
   if (isFullyCorrect) {
-    // ── Correct ──────────────────────────────────────
     if (sdWrongCount === 0) {
       sdStepCorrect++;
-      // Count individual condition accuracy for first-try correct
-      // All 6 options evaluated: 5 conditions + none
       const allKeys = [...ALL_CONDITIONS.map(c => c.key), NONE_KEY];
       allKeys.forEach(k => {
         sdCondTotal++;
-        // Correct if both agree (selected & in answer) or (not selected & not in answer)
         if (sdSelected.has(k) === correct.has(k)) sdCondCorrect++;
       });
     }
-
     sdLocked = true;
     sdRenderChoices(true, null);
     const labels = [...correct].map(k =>
@@ -326,31 +371,25 @@ function sdCheckAnswer() {
     }
 
   } else {
-    // ── Wrong ────────────────────────────────────────
     sdWrongCount++;
 
-    // Mark which selected answers were wrong (selected but shouldn't be, or missing)
     const wrongKeys = new Set();
     sdSelected.forEach(k => { if (!correct.has(k)) wrongKeys.add(k); });
-
     sdRenderChoices(false, wrongKeys);
 
     if (sdWrongCount === 1) {
-      sdSetFeedback('wrong', '✗ Not quite — some conditions are missing or incorrect. Here\'s a hint:');
+      sdSetFeedback('wrong', '✗ Not quite — some conditions are missing or incorrect.');
       const hintBox = document.getElementById('sd-hint-box');
       hintBox.textContent = step.hint;
       hintBox.style.display = '';
-      // Reset selection so they can try again
       sdSelected = new Set();
       setTimeout(() => sdRenderChoices(), 800);
     } else {
-      // Second wrong — count individual accuracy for this step then reveal
       const allKeys = [...ALL_CONDITIONS.map(c => c.key), NONE_KEY];
       allKeys.forEach(k => {
         sdCondTotal++;
         if (sdSelected.has(k) === correct.has(k)) sdCondCorrect++;
       });
-
       sdLocked = true;
       sdRenderChoices(true, null);
       const labels = [...correct].map(k =>
@@ -374,18 +413,18 @@ function sdNextStep() {
 
   const fromAgent = SD_STEPS[sdStep].agent;
   const toStep    = SD_STEPS[sdStep + 1];
-  sdStartAnimation(fromAgent, toStep.agent,
-    SD_STEPS[sdStep].camX, toStep.camX, () => {
-      sdStep++;
-      sdRenderStep();
-    });
+  sdStartAnimation(
+    fromAgent, toStep.agent,
+    SD_STEPS[sdStep].camX, toStep.camX,
+    () => { sdStep++; sdRenderStep(); }
+  );
 }
 
 // ── ANIMATION ──────────────────────────────────────────
 function sdStartAnimation(fromAgent, toAgent, fromCam, toCam, onDone) {
-  sdAnimating  = true;
+  sdAnimating    = true;
   sdAnimProgress = 0;
-  sdAnimAgent  = JSON.parse(JSON.stringify(fromAgent));
+  sdAnimAgent    = JSON.parse(JSON.stringify(fromAgent));
 
   document.getElementById('sd-next-btn').disabled  = true;
   document.getElementById('sd-check-btn').disabled = true;
@@ -395,14 +434,23 @@ function sdStartAnimation(fromAgent, toAgent, fromCam, toCam, onDone) {
     const t  = sdAnimProgress / SD_ANIM_DUR;
     const et = sdEase(t);
 
-    sdAnimAgent.x = fromAgent.x + (toAgent.x - fromAgent.x) * et;
-    sdAnimAgent.y = fromAgent.y + (toAgent.y - fromAgent.y) * et;
-    sdAnimAgent.y -= Math.sin(Math.PI * t) * 28;   // gentle arc
+    sdAnimAgent.x  = fromAgent.x + (toAgent.x - fromAgent.x) * et;
+    sdAnimAgent.y  = fromAgent.y + (toAgent.y - fromAgent.y) * et;
+    sdAnimAgent.y -= Math.sin(Math.PI * t) * 28;
 
-    const camX = fromCam + (toCam - fromCam) * et;
+    const camX   = fromCam + (toCam - fromCam) * et;
     const canvas = document.getElementById('sd-canvas');
-    drawLevel(canvas.getContext('2d'), canvas.width, canvas.height,
-              sdAnimLevel, sdAnimAgent, camX, 'green');
+    const ctx    = canvas.getContext('2d');
+    drawLevel(ctx, canvas.width, canvas.height, sdAnimLevel, sdAnimAgent, camX, 'green');
+    sdDrawSensorRings(ctx, sdAnimAgent, camX);
+
+
+    // Fade sensor rings in during the final third of the animation
+    // using the destination step's sensors
+    if (t > 0.65) {
+      const ringAgent = { ...sdAnimAgent, sensors: toAgent.sensors };
+      sdDrawSensorRings(ctx, ringAgent, camX);
+    }
 
     if (sdAnimProgress < SD_ANIM_DUR) {
       sdAnimId = requestAnimationFrame(tick);
@@ -438,7 +486,6 @@ function sdShowResults() {
   document.getElementById('sd-res-cond-detail').textContent =
     `${sdCondCorrect} / ${sdCondTotal} individual condition answers correct`;
 
-  // Grade colour for step accuracy
   const stepGrade = stepPct === 100 ? 'grade-perfect' : stepPct >= 70 ? 'grade-good' : 'grade-ok';
   document.getElementById('sd-acc-step').className = 'acc-big ' + stepGrade;
 

@@ -141,19 +141,17 @@ const CW_SCENARIOS = [
 ];
 
 // ── STATE ────────────────────────────────────────
-let cwScenarioIdx   = 0;          // current scenario index
-let cwCompleted     = 0;          // scenarios fully finished
+let cwScenarioIdx   = 0;
+let cwCompleted     = 0;
 let cwTotalScore    = 0;
-let cwSensorCorrect = false;      // did sensor player get it right?
+let cwSensorCorrect = false;
 let cwRuleCorrect   = false;
-// Player 1 is Sensor Player in scenario 1 (sensorPlayerIdx = 0 → Player 1)
-let cwSensorPlayerIdx = 0;        // 0 = Player 1, 1 = Player 2
+let cwSensorPlayerIdx = 0;   // 0 = Player 1 is sensor first
 
 let cwSelectedSensors = new Set();
 let cwSelectedRule    = null;
 
-// Phase: 'overlay-sensor' | 'sensor' | 'overlay-rule' | 'rule' | 'overlay-reveal' | 'reveal'
-let cwPhase = 'overlay-sensor';
+let cwPhase = 'intro';
 
 let cwLevel  = null;
 
@@ -161,7 +159,7 @@ let cwLevel  = null;
 window.addEventListener('load', () => {
   cwLevel = createLevel();
   cwResizeCanvas();
-  cwShowPhase('overlay-sensor');
+  cwShowPhase('intro');  // start with intro overlay
   window.addEventListener('resize', cwResizeCanvas);
 });
 
@@ -183,18 +181,35 @@ function cwShowPhase(phase) {
   ['cw-overlay', 'cw-sensor-screen', 'cw-rule-screen', 'cw-reveal-screen']
     .forEach(id => document.getElementById(id).style.display = 'none');
 
-  const scenario = CW_SCENARIOS[cwScenarioIdx];
+  const scenario   = CW_SCENARIOS[cwScenarioIdx];
   const sensorName = cwSensorPlayerIdx === 0 ? 'Player 1' : 'Player 2';
   const ruleName   = cwSensorPlayerIdx === 0 ? 'Player 2' : 'Player 1';
 
-  if (phase === 'overlay-sensor') {
+  // ── INTRO overlay ───────────────────────────────
+  if (phase === 'intro') {
+    cwSetOverlay('blue', 'COLLABORATIVE WALKTHROUGH LEVEL', '');
+    document.getElementById('cw-overlay-bottom').innerHTML =
+      `One player identifies which sensors are active.<br>
+       The other picks the rule — without seeing the environment.<br><br>
+       Roles swap after every scenario.<br>
+       Complete at least 4 scenarios to proceed.`;
+    document.getElementById('cw-overlay-tap').textContent = 'tap anywhere to begin';
+    const overlayIntro = document.getElementById('cw-overlay');
+    overlayIntro.onclick = null;
+    overlayIntro.style.display = 'flex';
+    overlayIntro.onclick = () => cwShowPhase('overlay-sensor');
+
+  // ── Sensor player overlay ───────────────────────
+  } else if (phase === 'overlay-sensor') {
     cwSetOverlay(
       cwSensorPlayerIdx === 1 ? 'orange' : 'blue',
       `${ruleName.toUpperCase()} — CLOSE YOUR EYES`,
       `${sensorName.toUpperCase()} — TAP ANYWHERE TO BEGIN`
     );
-    document.getElementById('cw-overlay').style.display = 'flex';
-    document.getElementById('cw-overlay').onclick = () => cwShowPhase('sensor');
+    const overlaySensor = document.getElementById('cw-overlay');
+    overlaySensor.onclick = null;
+    overlaySensor.style.display = 'flex';
+    overlaySensor.onclick = () => cwShowPhase('sensor');
 
   } else if (phase === 'sensor') {
     document.getElementById('cw-sensor-screen').style.display = 'flex';
@@ -214,8 +229,10 @@ function cwShowPhase(phase) {
       `${sensorName.toUpperCase()} — CLOSE YOUR EYES`,
       `${ruleName.toUpperCase()} — TAP ANYWHERE TO BEGIN`
     );
-    document.getElementById('cw-overlay').style.display = 'flex';
-    document.getElementById('cw-overlay').onclick = () => cwShowPhase('rule');
+    const overlayRule = document.getElementById('cw-overlay');
+    overlayRule.onclick = null;
+    overlayRule.style.display = 'flex';
+    overlayRule.onclick = () => cwShowPhase('rule');
 
   } else if (phase === 'rule') {
     document.getElementById('cw-rule-screen').style.display = 'flex';
@@ -223,6 +240,7 @@ function cwShowPhase(phase) {
       `${ruleName} — Rule Selection`;
     document.getElementById('cw-scenario-num-rule').textContent =
       `Scenario ${cwScenarioIdx + 1} of ${CW_SCENARIOS.length}`;
+
     cwSelectedRule = null;
     cwRenderActiveSensorList();
     cwRenderRuleChoices();
@@ -230,8 +248,10 @@ function cwShowPhase(phase) {
 
   } else if (phase === 'overlay-reveal') {
     cwSetOverlay('green', 'BOTH PLAYERS — LOOK NOW', 'TAP ANYWHERE TO REVEAL THE ANSWER');
-    document.getElementById('cw-overlay').style.display = 'flex';
-    document.getElementById('cw-overlay').onclick = () => cwShowPhase('reveal');
+    const overlayReveal = document.getElementById('cw-overlay');
+    overlayReveal.onclick = null;
+    overlayReveal.style.display = 'flex';
+    overlayReveal.onclick = () => cwShowPhase('reveal');
 
   } else if (phase === 'reveal') {
     document.getElementById('cw-reveal-screen').style.display = 'flex';
@@ -249,7 +269,7 @@ function cwSetOverlay(color, topText, bottomText) {
   const accents = { blue: '#00f5ff', orange: '#ff6b35', green: '#00ff88' };
   overlay.style.background = colors[color] || colors.blue;
   document.getElementById('cw-overlay-top').textContent    = topText;
-  document.getElementById('cw-overlay-bottom').textContent = bottomText;
+  document.getElementById('cw-overlay-bottom').innerHTML   = bottomText;
   document.getElementById('cw-overlay-top').style.color    = accents[color];
   document.getElementById('cw-overlay-bottom').style.color = '#e8f0ff';
 }
@@ -328,7 +348,6 @@ function cwSubmitSensors() {
     return;
   }
 
-  // Grade sensor answer
   const sc      = CW_SCENARIOS[cwScenarioIdx];
   const correct = new Set(sc.activeSensors.length === 0 ? [CW_NONE_KEY] : sc.activeSensors);
   cwSensorCorrect = cwSetsEqual(cwSelectedSensors, correct);
@@ -365,7 +384,6 @@ function cwRenderRuleChoices(highlightCorrect = false, highlightWrong = -1) {
       </div>`;
   }).join('');
 
-  // Handle no-rule-fires case
   if (sc.correctRule === -1) {
     const noRuleEl = document.getElementById('cw-no-rule-option');
     if (noRuleEl) {
@@ -383,7 +401,7 @@ function cwSelectRule(i) {
 
 function cwSelectNoRule() {
   if (document.getElementById('cw-rule-submit-btn').disabled) return;
-  cwSelectedRule = -2; // sentinel for "no rule fires"
+  cwSelectedRule = -2;
   cwRenderRuleChoices();
 }
 
@@ -394,7 +412,6 @@ function cwSubmitRule() {
     return;
   }
 
-  // -2 means player chose "no rule fires", correct if correctRule === -1
   const playerChoice = cwSelectedRule === -2 ? -1 : cwSelectedRule;
   cwRuleCorrect = playerChoice === sc.correctRule;
 
@@ -405,10 +422,8 @@ function cwSubmitRule() {
 function cwBuildReveal() {
   const sc = CW_SCENARIOS[cwScenarioIdx];
 
-  // Explanation
   document.getElementById('cw-explanation').textContent = sc.explanation;
 
-  // Score this round
   const roundScore = (cwSensorCorrect ? 1 : 0) + (cwRuleCorrect ? 1 : 0);
   cwTotalScore += roundScore;
   document.getElementById('cw-round-score').textContent  = `Round score: ${roundScore} / 2`;
@@ -422,20 +437,15 @@ function cwBuildReveal() {
   document.getElementById('cw-rule-result').style.color =
     cwRuleCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
 
-  // Sensor reveal panel
   cwBuildSensorReveal();
-
-  // Rule reveal panel
   cwBuildRuleReveal();
 
-  // Proceed button visibility
   cwCompleted++;
   document.getElementById('cw-next-btn').style.display = '';
   const proceedBtn = document.getElementById('cw-proceed-btn');
   if (cwCompleted >= 4) proceedBtn.style.display = '';
   else proceedBtn.style.display = 'none';
 
-  // Hide next if last scenario
   if (cwScenarioIdx >= CW_SCENARIOS.length - 1) {
     document.getElementById('cw-next-btn').style.display = 'none';
   }
@@ -450,9 +460,8 @@ function cwBuildSensorReveal() {
   container.innerHTML = opts.map(s => {
     const wasSelected = cwSelectedSensors.has(s.key);
     const isCorrect   = correct.has(s.key);
-    let cls = 'cw-reveal-item';
-    let icon = '○';
-    if (isCorrect && wasSelected)  { cls += ' cw-reveal-correct'; icon = '✓'; }
+    let cls = 'cw-reveal-item', icon = '○';
+    if (isCorrect && wasSelected)       { cls += ' cw-reveal-correct'; icon = '✓'; }
     else if (isCorrect && !wasSelected) { cls += ' cw-reveal-missed';  icon = '!'; }
     else if (!isCorrect && wasSelected) { cls += ' cw-reveal-wrong';   icon = '✗'; }
     return `<div class="${cls}"><span class="cw-reveal-icon">${icon}</span>${s.label}</div>`;
@@ -466,8 +475,8 @@ function cwBuildRuleReveal() {
 
   let html = CW_RULES.map((r, i) => {
     let cls = 'cw-reveal-item';
-    if (i === sc.correctRule)   cls += ' cw-reveal-correct';
-    if (i === playerChoice && i !== sc.correctRule) cls += ' cw-reveal-wrong';
+    if (i === sc.correctRule)                              cls += ' cw-reveal-correct';
+    if (i === playerChoice && i !== sc.correctRule)        cls += ' cw-reveal-wrong';
     return `<div class="${cls}">
       ${i === sc.correctRule ? '<span class="cw-reveal-icon">✓</span>' :
         i === playerChoice   ? '<span class="cw-reveal-icon">✗</span>' :
@@ -476,9 +485,7 @@ function cwBuildRuleReveal() {
     </div>`;
   }).join('');
 
-  // No rule fires option
   if (sc.correctRule === -1) {
-    const noRuleSel = playerChoice === -1;
     html += `<div class="cw-reveal-item cw-reveal-correct">
       <span class="cw-reveal-icon">✓</span>No rule fires
     </div>`;
@@ -494,9 +501,7 @@ function cwBuildRuleReveal() {
 // ── NAVIGATION ───────────────────────────────────
 function cwNextScenario() {
   cwScenarioIdx++;
-  // Rotate level so coins reset
   cwLevel = createLevel();
-  // Swap sensor/rule player roles
   cwSensorPlayerIdx = cwSensorPlayerIdx === 0 ? 1 : 0;
   cwShowPhase('overlay-sensor');
 }

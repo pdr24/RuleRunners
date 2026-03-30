@@ -30,7 +30,6 @@
     #cw-overlay {
       display: none;
       position: fixed;
-      /* sit below the app header */
       top: 53px; left: 0; right: 0; bottom: 0;
       flex-direction: column;
       align-items: center;
@@ -54,17 +53,19 @@
     }
     .cw-overlay-bottom {
       font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(0.75rem, 2vw, 1rem);
+      font-size: clamp(1rem, 2.2vw, 1.3rem);
       letter-spacing: 3px;
       text-transform: uppercase;
       opacity: 0.8;
+      max-width: 90%;
+      line-height: 1.8;
     }
     .cw-overlay-tap {
       margin-top: 20px;
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
+      font-size: 1rem;
       letter-spacing: 3px;
-      color: rgba(255,255,255,0.3);
+      color: #00ff88;
       text-transform: uppercase;
       animation: cw-pulse 1.5s ease-in-out infinite;
     }
@@ -274,10 +275,10 @@
       align-items: center;
       gap: 6px;
     }
-    .cw-badge-active  { font-weight: 700; }
+    .cw-badge-active   { font-weight: 700; }
     .cw-badge-inactive { opacity: 0.35; }
 
-    /* Rule screen left: grey placeholder (rules player can't see the level) */
+    /* Rule screen left placeholder */
     .cw-rule-left-placeholder {
       display: flex;
       align-items: center;
@@ -332,7 +333,6 @@
       flex-direction: column;
       gap: 6px;
     }
-
     .cw-reveal-item {
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.7rem;
@@ -346,10 +346,9 @@
     }
     .cw-reveal-correct { border-color: var(--accent-green) !important; color: var(--accent-green) !important; background: rgba(0,255,136,0.07) !important; }
     .cw-reveal-wrong   { border-color: var(--accent-red)   !important; color: var(--accent-red)   !important; background: rgba(255,45,85,0.07)  !important; }
-    .cw-reveal-missed  { border-color: var(--accent-yellow)!important; color: var(--accent-yellow)!important; background: rgba(255,214,10,0.07)  !important; }
+    .cw-reveal-missed  { border-color: var(--accent-yellow)!important; color: var(--accent-yellow)!important; background: rgba(255,214,10,0.07) !important; }
     .cw-reveal-icon { font-size: 0.75rem; flex-shrink: 0; width: 14px; }
 
-    /* Reveal canvas col */
     .cw-reveal-canvas-wrap {
       flex: 1;
       position: relative;
@@ -357,7 +356,7 @@
       margin: 10px;
     }
 
-    /* Score bar */
+    /* ── SCORE BAR ── */
     .cw-score-bar {
       padding: 10px 20px;
       border-top: 1px solid var(--border);
@@ -368,13 +367,13 @@
       background: var(--bg-panel);
       flex-wrap: wrap;
     }
-    .cw-score-item { display: flex; flex-direction: column; gap: 2px; }
+    .cw-score-item  { display: flex; flex-direction: column; gap: 2px; }
     .cw-score-label { font-family: 'Orbitron', sans-serif; font-size: 0.55rem; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
     .cw-score-val   { font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; }
     .cw-score-correct { color: var(--accent-green); }
     .cw-score-wrong   { color: var(--accent-red); }
 
-    /* Explanation */
+    /* ── EXPLANATION ── */
     .cw-explanation-bar {
       padding: 10px 16px;
       background: rgba(139,92,246,0.07);
@@ -392,7 +391,7 @@
       color: var(--accent-purple);
     }
 
-    /* Legend key */
+    /* ── LEGEND KEY ── */
     .cw-legend-key {
       padding: 6px 16px;
       display: flex;
@@ -402,13 +401,13 @@
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.62rem;
     }
-    .cw-lk-item { display: flex; align-items: center; gap: 5px; }
+    .cw-lk-item    { display: flex; align-items: center; gap: 5px; }
     .cw-lk-correct { color: var(--accent-green); }
     .cw-lk-wrong   { color: var(--accent-red); }
     .cw-lk-missed  { color: var(--accent-yellow); }
     .cw-lk-neutral { color: var(--text-dim); }
 
-    /* Nav buttons */
+    /* ── NAV BUTTONS ── */
     .cw-nav-btns {
       padding: 10px 16px;
       display: flex;
@@ -429,17 +428,16 @@
 
   <div id="toast"></div>
   <header class="app-header" data-phase="03"></header>
-
   <script src="js/nav.js"></script>
 
   <!-- ══════════════════════════════════════════
-       OVERLAY (covers everything below header)
+       OVERLAY (intro + player turn overlays)
   ═══════════════════════════════════════════ -->
   <div id="cw-overlay">
     <div class="cw-overlay-top"    id="cw-overlay-top">—</div>
     <div class="cw-overlay-divider"></div>
     <div class="cw-overlay-bottom" id="cw-overlay-bottom">—</div>
-    <div class="cw-overlay-tap">tap anywhere to continue</div>
+    <div id="cw-overlay-tap" class="cw-overlay-tap">tap anywhere to continue</div>
   </div>
 
   <!-- ══════════════════════════════════════════
@@ -479,11 +477,7 @@
           <h3 style="color:var(--accent-cyan);">📡 Active Sensors?</h3>
           <p>Look at the environment and select <strong>all</strong> sensors you think are active. Your partner will use this to pick a rule.</p>
         </div>
-
-        <div class="cw-choices" id="cw-sensor-list">
-          <!-- rendered by JS -->
-        </div>
-
+        <div class="cw-choices" id="cw-sensor-list"></div>
         <div class="cw-footer">
           <div class="cw-feedback" id="cw-sensor-feedback"></div>
           <button class="btn btn-primary" onclick="cwSubmitSensors()">Submit Sensors ▶</button>
@@ -505,7 +499,7 @@
 
     <div class="cw-split">
 
-      <!-- LEFT: grey out — rule player can't see the level -->
+      <!-- LEFT: hidden from rule player -->
       <div class="cw-rule-left-placeholder">
         <div class="cw-placeholder-text">
           🙈<br><br>
@@ -526,11 +520,8 @@
           <div id="cw-active-sensors-display"></div>
         </div>
 
-        <div class="cw-choices" id="cw-rule-list">
-          <!-- rendered by JS -->
-        </div>
+        <div class="cw-choices" id="cw-rule-list"></div>
 
-        <!-- "No rule fires" option for scenario 4 -->
         <div style="padding: 0 12px 6px;">
           <div class="cw-choice" id="cw-no-rule-option" onclick="cwSelectNoRule()">
             <span class="cw-rule-num">—</span>
@@ -614,7 +605,7 @@
     <div class="cw-nav-btns">
       <button class="btn btn-primary"   id="cw-next-btn"    onclick="cwNextScenario()" style="display:none;">Next Scenario ▶</button>
       <a      class="btn btn-green"     id="cw-proceed-btn" href="buildAgent.html"      style="display:none;">Proceed to Build ▶</a>
-      <button class="btn btn-secondary btn-sm" onclick="window.location.href='guidedWalkthrough.html'">◀ Back</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.location.href='practiceCollaborativeWalkthrough.html'">◀ Back</button>
     </div>
 
   </div><!-- /#cw-reveal-screen -->

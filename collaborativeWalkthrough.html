@@ -18,10 +18,10 @@
     }
     .cw-screen.cw-active { display: flex; }
 
-    .cw-split {
+    .cw-main {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 320px;
+      grid-template-columns: 1fr 25% 28%;
       overflow: hidden;
       min-height: 0;
     }
@@ -71,7 +71,7 @@
     }
     @keyframes cw-pulse { 0%,100%{opacity:0.3} 50%{opacity:0.8} }
 
-    /* ── SCENARIO COUNTER BAR ── */
+    /* ── TOP BAR ── */
     .cw-top-bar {
       display: flex;
       align-items: center;
@@ -115,12 +115,12 @@
       color: var(--accent-cyan);
     }
 
-    /* ── LEFT PANEL (canvas area) ── */
+    /* ── COLUMN 1: WORLD PANEL ── */
     .cw-left {
       display: flex;
       flex-direction: column;
-      padding: 12px 12px 12px 18px;
-      gap: 10px;
+      padding: 10px 10px 10px 14px;
+      gap: 8px;
       overflow: hidden;
       min-height: 0;
     }
@@ -149,7 +149,7 @@
     .cw-legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
       flex-shrink: 0;
     }
     .cw-legend-item {
@@ -157,58 +157,84 @@
       align-items: center;
       gap: 5px;
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.62rem;
+      font-size: 0.58rem;
       color: var(--text-dim);
     }
     .cw-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-    /* ── RIGHT PANEL (choices) ── */
-    .cw-right {
+    /* hidden world panel for rule player */
+    .cw-left-hidden {
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+    .cw-hidden-panel-text {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.8;
+    }
+
+    /* ── COLUMN 2 / 3: PANELS ── */
+    .cw-mid, .cw-right {
       background: var(--bg-panel);
       border-left: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-height: 0;
     }
-    .cw-right-header {
-      padding: 12px 16px;
+
+    .cw-panel-hidden {
+      display: none !important;
+    }
+
+    .cw-panel-header {
+      padding: 10px 14px;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
-    .cw-right-header h3 {
+    .cw-panel-header h3 {
       font-family: 'Orbitron', sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
-    .cw-right-header p {
+    .cw-panel-header p {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.68rem;
+      font-size: 0.63rem;
       color: var(--text-dim);
       line-height: 1.4;
     }
 
-    /* ── CHOICE CARDS ── */
-    .cw-choices {
+    /* ── CHOICE LIST ── */
+    .cw-choice-list {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 12px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
-    .cw-choices::-webkit-scrollbar { width: 3px; }
-    .cw-choices::-webkit-scrollbar-thumb { background: var(--border); }
+    .cw-choice-list::-webkit-scrollbar { width: 3px; }
+    .cw-choice-list::-webkit-scrollbar-thumb { background: var(--border); }
 
+    /* ── CHOICE CARD ── */
     .cw-choice {
       background: var(--bg-panel2);
       border: 2px solid var(--border);
-      padding: 9px 12px;
+      padding: 8px 11px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
       user-select: none;
@@ -216,40 +242,41 @@
     .cw-choice:hover { border-color: var(--border-bright); background: rgba(255,255,255,0.02); }
     .cw-choice-selected { border-color: var(--accent-cyan) !important; background: rgba(0,245,255,0.07) !important; }
     .cw-choice-correct  { border-color: var(--accent-green) !important; background: rgba(0,255,136,0.08) !important; cursor: default; }
-    .cw-choice-wrong    { border-color: var(--accent-red)   !important; background: rgba(255,45,85,0.08)  !important; cursor: default; }
+    .cw-choice-wrong    { border-color: var(--accent-red) !important; background: rgba(255,45,85,0.08) !important; cursor: default; }
     .cw-choice-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .cw-choice-label, .cw-rule-text {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       flex: 1;
       color: var(--text-primary);
+      line-height: 1.3;
     }
-    .cw-tick { font-size: 0.8rem; color: var(--accent-cyan); flex-shrink: 0; }
+    .cw-tick { font-size: 0.78rem; color: var(--accent-cyan); flex-shrink: 0; }
     .cw-rule-num {
       font-family: 'Orbitron', sans-serif;
-      font-size: 0.62rem;
+      font-size: 0.58rem;
       color: var(--text-dim);
-      width: 16px;
+      width: 14px;
       flex-shrink: 0;
     }
 
-    /* ── FEEDBACK / FOOTER ── */
-    .cw-footer {
-      padding: 10px 14px;
+    /* ── FOOTER ── */
+    .cw-panel-footer {
+      padding: 8px 12px;
       border-top: 1px solid var(--border);
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
     .cw-feedback {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: var(--accent-red);
-      min-height: 16px;
+      min-height: 14px;
     }
 
-    /* ── RULE SCREEN: sensor display ── */
+    /* ── RULE PLAYER SENSOR SUMMARY ── */
     .cw-sensor-summary {
       padding: 10px 12px;
       display: flex;
@@ -277,26 +304,6 @@
     }
     .cw-badge-active   { font-weight: 700; }
     .cw-badge-inactive { opacity: 0.35; }
-
-    /* Rule screen left placeholder */
-    .cw-rule-left-placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-mid);
-      border: 1px solid var(--border);
-      flex: 1;
-      margin: 12px 12px 12px 18px;
-    }
-    .cw-placeholder-text {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.75rem;
-      color: var(--text-dim);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      text-align: center;
-      padding: 20px;
-    }
 
     /* ── REVEAL SCREEN ── */
     .cw-reveal-split {
@@ -344,11 +351,10 @@
       color: var(--text-secondary);
     }
     .cw-reveal-correct { border-color: var(--accent-green) !important; color: var(--accent-green) !important; background: rgba(0,255,136,0.07) !important; }
-    .cw-reveal-wrong   { border-color: var(--accent-red)   !important; color: var(--accent-red)   !important; background: rgba(255,45,85,0.07)  !important; }
-    .cw-reveal-missed  { border-color: var(--accent-yellow)!important; color: var(--accent-yellow)!important; background: rgba(255,214,10,0.07) !important; }
+    .cw-reveal-wrong   { border-color: var(--accent-red) !important; color: var(--accent-red) !important; background: rgba(255,45,85,0.07) !important; }
+    .cw-reveal-missed  { border-color: var(--accent-yellow) !important; color: var(--accent-yellow) !important; background: rgba(255,214,10,0.07) !important; }
     .cw-reveal-icon { font-size: 0.75rem; flex-shrink: 0; width: 14px; }
 
-    /* Canvas col — left panel of reveal */
     .cw-reveal-canvas-col {
       display: flex;
       flex-direction: column;
@@ -364,7 +370,6 @@
       min-height: 0;
     }
 
-    /* Score + nav footer inside right reveal col */
     .cw-reveal-footer {
       padding: 10px 12px;
       border-top: 1px solid var(--border);
@@ -389,7 +394,7 @@
       flex-wrap: wrap;
     }
 
-    /* EXPLANATION ── */
+    /* ── EXPLANATION ── */
     .cw-explanation-bar {
       padding: 10px 16px;
       background: rgba(139,92,246,0.07);
@@ -407,7 +412,7 @@
       color: var(--accent-purple);
     }
 
-    /* LEGEND KEY ── */
+    /* ── LEGEND KEY ── */
     .cw-legend-key {
       padding: 6px 16px;
       display: flex;
@@ -423,10 +428,10 @@
     .cw-lk-missed  { color: var(--accent-yellow); }
     .cw-lk-neutral { color: var(--text-dim); }
 
-    @media (max-width: 800px) {
+    @media (max-width: 900px) {
       body { overflow: auto; height: auto; }
-      .cw-split { grid-template-columns: 1fr; }
-      .cw-reveal-layout { grid-template-columns: 1fr; }
+      .cw-main,
+      .cw-reveal-split { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -436,35 +441,30 @@
   <header class="app-header" data-phase="03"></header>
   <script src="js/nav.js"></script>
 
-  <!-- ══════════════════════════════════════════
-       OVERLAY (intro + player turn overlays)
-  ═══════════════════════════════════════════ -->
+  <!-- OVERLAY -->
   <div id="cw-overlay">
-    <div class="cw-overlay-top"    id="cw-overlay-top">—</div>
+    <div class="cw-overlay-top" id="cw-overlay-top">—</div>
     <div class="cw-overlay-divider"></div>
     <div class="cw-overlay-bottom" id="cw-overlay-bottom">—</div>
     <div id="cw-overlay-tap" class="cw-overlay-tap">tap anywhere to continue</div>
-
   </div>
 
-  <!-- ══════════════════════════════════════════
-       SENSOR PLAYER SCREEN
-  ═══════════════════════════════════════════ -->
+  <!-- SENSOR PLAYER SCREEN -->
   <div class="cw-screen" id="cw-sensor-screen">
 
     <div class="cw-top-bar">
       <span class="cw-player-label p1" id="cw-sensor-player-label">Player 1 — Sensor Detection</span>
-      <span class="cw-scenario-num"    id="cw-scenario-num-sensor">Scenario 1 of 8</span>
+      <span class="cw-scenario-num" id="cw-scenario-num-sensor">Scenario 1 of 8</span>
     </div>
 
     <div class="cw-context-bar">
       <strong>SITUATION ▸</strong> <span id="cw-sensor-context"></span>
     </div>
 
-    <div class="cw-split">
+    <div class="cw-main">
 
-      <!-- LEFT: canvas -->
-      <div class="cw-left">
+      <!-- COLUMN 1: agent world -->
+      <div class="cw-left" id="cw-sensor-world-panel">
         <div class="cw-canvas-wrap">
           <canvas class="cw-canvas" id="cw-canvas-sensor"></canvas>
           <div class="cw-canvas-label">ENVIRONMENT VIEW</div>
@@ -478,76 +478,88 @@
         </div>
       </div>
 
-      <!-- RIGHT: sensor choices -->
-      <div class="cw-right">
-        <div class="cw-right-header">
+      <!-- COLUMN 2: sensors -->
+      <div class="cw-mid" id="cw-sensor-sensors-panel">
+        <div class="cw-panel-header">
           <h3 style="color:var(--accent-cyan);">📡 Active Sensors?</h3>
-          <p>Look at the environment and select <strong>all</strong> sensors you think are active. Your partner will use this to pick a rule.</p>
+          <p>Look at the environment and select <strong>all</strong> sensors you think are active.</p>
         </div>
-        <div class="cw-choices" id="cw-sensor-list"></div>
-        <div class="cw-footer">
+        <div class="cw-choice-list" id="cw-sensor-list"></div>
+        <div class="cw-panel-footer">
           <div class="cw-feedback" id="cw-sensor-feedback"></div>
           <button class="btn btn-primary" onclick="cwSubmitSensors()">Submit Sensors ▶</button>
         </div>
       </div>
 
-    </div>
-  </div><!-- /#cw-sensor-screen -->
+      <!-- COLUMN 3: rules (hidden for sensor player) -->
+      <div class="cw-right cw-panel-hidden" id="cw-sensor-rules-panel">
+        <div class="cw-panel-header">
+          <h3 style="color:var(--accent-orange);">⚡ Which Rule Fires?</h3>
+          <p>This panel is hidden during the sensor player's turn.</p>
+        </div>
+      </div>
 
-  <!-- ══════════════════════════════════════════
-       RULE PLAYER SCREEN
-  ═══════════════════════════════════════════ -->
+    </div>
+  </div>
+
+  <!-- RULE PLAYER SCREEN -->
   <div class="cw-screen" id="cw-rule-screen">
 
     <div class="cw-top-bar">
       <span class="cw-player-label p2" id="cw-rule-player-label">Player 2 — Rule Selection</span>
-      <span class="cw-scenario-num"    id="cw-scenario-num-rule">Scenario 1 of 8</span>
+      <span class="cw-scenario-num" id="cw-scenario-num-rule">Scenario 1 of 8</span>
     </div>
 
-    <div class="cw-split">
+    <div class="cw-main">
 
-      <!-- LEFT: hidden from rule player -->
-      <div class="cw-rule-left-placeholder">
-        <div class="cw-placeholder-text">
+      <!-- COLUMN 1: world hidden for rule player -->
+      <div class="cw-left-hidden" id="cw-rule-world-panel">
+        <div class="cw-hidden-panel-text">
           🙈<br><br>
-          Environment hidden<br>from Rule Player.<br><br>
-          Use the sensor list<br>to choose your rule.
+          Environment hidden<br>
+          from rule player
         </div>
       </div>
 
-      <!-- RIGHT: sensor summary + rule choices -->
-      <div class="cw-right">
-        <div class="cw-right-header">
-          <h3 style="color:var(--accent-orange);">⚡ Which Rule Fires?</h3>
-          <p>Your partner identified these active sensors. Choose the rule that fires based on them.</p>
+      <!-- COLUMN 2: sensors summary -->
+      <div class="cw-mid" id="cw-rule-sensors-panel">
+        <div class="cw-panel-header">
+          <h3 style="color:var(--accent-cyan);">📡 Active Sensors</h3>
+          <p>Your partner selected these sensors. Use them to decide which rule fires.</p>
         </div>
 
         <div class="cw-sensor-summary">
           <div class="cw-sensor-summary-title">Sensors selected by your partner:</div>
           <div id="cw-active-sensors-display"></div>
         </div>
+      </div>
 
-        <div class="cw-choices" id="cw-rule-list"></div>
+      <!-- COLUMN 3: rules -->
+      <div class="cw-right" id="cw-rule-rules-panel">
+        <div class="cw-panel-header">
+          <h3 style="color:var(--accent-orange);">⚡ Which Rule Fires?</h3>
+          <p>Rules check top-to-bottom. Pick the first match.</p>
+        </div>
 
-        <div style="padding: 0 12px 6px;">
+        <div class="cw-choice-list" id="cw-rule-list"></div>
+
+        <div style="padding: 0 10px 6px;">
           <div class="cw-choice" id="cw-no-rule-option" onclick="cwSelectNoRule()">
             <span class="cw-rule-num">—</span>
             <span class="cw-rule-text" style="color:var(--text-dim);">No rule fires this frame</span>
           </div>
         </div>
 
-        <div class="cw-footer">
+        <div class="cw-panel-footer">
           <div class="cw-feedback" id="cw-rule-feedback"></div>
           <button class="btn btn-primary" id="cw-rule-submit-btn" onclick="cwSubmitRule()">Submit Rule ▶</button>
         </div>
       </div>
 
     </div>
-  </div><!-- /#cw-rule-screen -->
+  </div>
 
-  <!-- ══════════════════════════════════════════
-       REVEAL SCREEN
-  ═══════════════════════════════════════════ -->
+  <!-- REVEAL SCREEN -->
   <div class="cw-screen" id="cw-reveal-screen">
 
     <div class="cw-top-bar">
@@ -566,10 +578,8 @@
       <span class="cw-lk-item cw-lk-neutral">○ Not selected, not needed</span>
     </div>
 
-    <!-- Same 3-column split as main screens — canvas stays its natural size -->
     <div class="cw-reveal-split">
 
-      <!-- LEFT: canvas in normal left panel -->
       <div class="cw-reveal-canvas-col">
         <div class="cw-reveal-col-header">🗺 Environment</div>
         <div class="cw-reveal-canvas-wrap">
@@ -577,13 +587,11 @@
         </div>
       </div>
 
-      <!-- MIDDLE: sensor results -->
       <div class="cw-reveal-col">
         <div class="cw-reveal-col-header">📡 Sensors</div>
         <div class="cw-reveal-col-body" id="cw-reveal-sensors"></div>
       </div>
 
-      <!-- RIGHT: rule results + score + nav in footer -->
       <div class="cw-reveal-col">
         <div class="cw-reveal-col-header">⚡ Rules</div>
         <div class="cw-reveal-col-body" id="cw-reveal-rules"></div>
@@ -593,16 +601,15 @@
           <div class="cw-score-row" id="cw-round-score">—</div>
           <div class="cw-score-total" id="cw-total-score">—</div>
           <div class="cw-reveal-nav">
-            <button class="btn btn-primary"   id="cw-next-btn"    onclick="cwNextScenario()" style="display:none;">Next Scenario ▶</button>
-            <a      class="btn btn-green"     id="cw-proceed-btn" href="buildAgent.html"      style="display:none;">Proceed to Build ▶</a>
+            <button class="btn btn-primary" id="cw-next-btn" onclick="cwNextScenario()" style="display:none;">Next Scenario ▶</button>
+            <a class="btn btn-green" id="cw-proceed-btn" href="buildAgent.html" style="display:none;">Proceed to Build ▶</a>
             <button class="btn btn-secondary btn-sm" onclick="window.location.href='practiceCollaborativeWalkthrough.html'">◀ Back</button>
           </div>
         </div>
       </div>
 
     </div>
-
-  </div><!-- /#cw-reveal-screen -->
+  </div>
 
   <script src="js/engine.js"></script>
   <script src="js/collaborativeWalkthrough.js"></script>

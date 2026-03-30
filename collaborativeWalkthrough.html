@@ -53,19 +53,19 @@
     }
     .cw-overlay-bottom {
       font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(1rem, 2.2vw, 1.3rem);
+      font-size: clamp(0.75rem, 2vw, 1rem);
       letter-spacing: 3px;
       text-transform: uppercase;
       opacity: 0.8;
-      max-width: 90%;
+      max-width: 600px;
       line-height: 1.8;
     }
     .cw-overlay-tap {
       margin-top: 20px;
       font-family: 'Share Tech Mono', monospace;
-      font-size: 1rem;
+      font-size: 0.7rem;
       letter-spacing: 3px;
-      color: #00ff88;
+      color: rgba(255,255,255,0.3);
       text-transform: uppercase;
       animation: cw-pulse 1.5s ease-in-out infinite;
     }
@@ -299,11 +299,10 @@
     }
 
     /* ── REVEAL SCREEN ── */
-    .cw-reveal-layout {
+    .cw-reveal-split {
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 0;
       overflow: hidden;
       min-height: 0;
     }
@@ -349,31 +348,48 @@
     .cw-reveal-missed  { border-color: var(--accent-yellow)!important; color: var(--accent-yellow)!important; background: rgba(255,214,10,0.07) !important; }
     .cw-reveal-icon { font-size: 0.75rem; flex-shrink: 0; width: 14px; }
 
+    /* Canvas col — left panel of reveal */
+    .cw-reveal-canvas-col {
+      display: flex;
+      flex-direction: column;
+      padding: 10px 10px 10px 14px;
+      gap: 8px;
+      overflow: hidden;
+      min-height: 0;
+      border-right: 1px solid var(--border);
+    }
     .cw-reveal-canvas-wrap {
       flex: 1;
       position: relative;
       min-height: 0;
-      margin: 10px;
     }
 
-    /* ── SCORE BAR ── */
-    .cw-score-bar {
-      padding: 10px 20px;
+    /* Score + nav footer inside right reveal col */
+    .cw-reveal-footer {
+      padding: 10px 12px;
       border-top: 1px solid var(--border);
-      display: flex;
-      gap: 24px;
-      align-items: center;
       flex-shrink: 0;
-      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cw-score-row {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+    }
+    .cw-score-total {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.72rem;
+      color: var(--accent-cyan);
+      letter-spacing: 1px;
+    }
+    .cw-reveal-nav {
+      display: flex;
+      gap: 8px;
       flex-wrap: wrap;
     }
-    .cw-score-item  { display: flex; flex-direction: column; gap: 2px; }
-    .cw-score-label { font-family: 'Orbitron', sans-serif; font-size: 0.55rem; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
-    .cw-score-val   { font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; }
-    .cw-score-correct { color: var(--accent-green); }
-    .cw-score-wrong   { color: var(--accent-red); }
 
-    /* ── EXPLANATION ── */
+    /* EXPLANATION ── */
     .cw-explanation-bar {
       padding: 10px 16px;
       background: rgba(139,92,246,0.07);
@@ -391,7 +407,7 @@
       color: var(--accent-purple);
     }
 
-    /* ── LEGEND KEY ── */
+    /* LEGEND KEY ── */
     .cw-legend-key {
       padding: 6px 16px;
       display: flex;
@@ -406,16 +422,6 @@
     .cw-lk-wrong   { color: var(--accent-red); }
     .cw-lk-missed  { color: var(--accent-yellow); }
     .cw-lk-neutral { color: var(--text-dim); }
-
-    /* ── NAV BUTTONS ── */
-    .cw-nav-btns {
-      padding: 10px 16px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-shrink: 0;
-      border-top: 1px solid var(--border);
-    }
 
     @media (max-width: 800px) {
       body { overflow: auto; height: auto; }
@@ -438,6 +444,7 @@
     <div class="cw-overlay-divider"></div>
     <div class="cw-overlay-bottom" id="cw-overlay-bottom">—</div>
     <div id="cw-overlay-tap" class="cw-overlay-tap">tap anywhere to continue</div>
+
   </div>
 
   <!-- ══════════════════════════════════════════
@@ -559,53 +566,40 @@
       <span class="cw-lk-item cw-lk-neutral">○ Not selected, not needed</span>
     </div>
 
-    <div class="cw-reveal-layout">
+    <!-- Same 3-column split as main screens — canvas stays its natural size -->
+    <div class="cw-reveal-split">
 
-      <!-- Environment -->
-      <div class="cw-reveal-col">
+      <!-- LEFT: canvas in normal left panel -->
+      <div class="cw-reveal-canvas-col">
         <div class="cw-reveal-col-header">🗺 Environment</div>
         <div class="cw-reveal-canvas-wrap">
           <canvas class="cw-canvas" id="cw-canvas-reveal"></canvas>
         </div>
       </div>
 
-      <!-- Sensors -->
+      <!-- MIDDLE: sensor results -->
       <div class="cw-reveal-col">
         <div class="cw-reveal-col-header">📡 Sensors</div>
         <div class="cw-reveal-col-body" id="cw-reveal-sensors"></div>
       </div>
 
-      <!-- Rules -->
+      <!-- RIGHT: rule results + score + nav in footer -->
       <div class="cw-reveal-col">
         <div class="cw-reveal-col-header">⚡ Rules</div>
         <div class="cw-reveal-col-body" id="cw-reveal-rules"></div>
+        <div class="cw-reveal-footer">
+          <div class="cw-score-row" id="cw-sensor-result">—</div>
+          <div class="cw-score-row" id="cw-rule-result">—</div>
+          <div class="cw-score-row" id="cw-round-score">—</div>
+          <div class="cw-score-total" id="cw-total-score">—</div>
+          <div class="cw-reveal-nav">
+            <button class="btn btn-primary"   id="cw-next-btn"    onclick="cwNextScenario()" style="display:none;">Next Scenario ▶</button>
+            <a      class="btn btn-green"     id="cw-proceed-btn" href="buildAgent.html"      style="display:none;">Proceed to Build ▶</a>
+            <button class="btn btn-secondary btn-sm" onclick="window.location.href='practiceCollaborativeWalkthrough.html'">◀ Back</button>
+          </div>
+        </div>
       </div>
 
-    </div>
-
-    <div class="cw-score-bar">
-      <div class="cw-score-item">
-        <span class="cw-score-label">Sensors</span>
-        <span class="cw-score-val" id="cw-sensor-result">—</span>
-      </div>
-      <div class="cw-score-item">
-        <span class="cw-score-label">Rule</span>
-        <span class="cw-score-val" id="cw-rule-result">—</span>
-      </div>
-      <div class="cw-score-item">
-        <span class="cw-score-label">Round</span>
-        <span class="cw-score-val" id="cw-round-score">0 / 2</span>
-      </div>
-      <div class="cw-score-item">
-        <span class="cw-score-label">Total</span>
-        <span class="cw-score-val" style="color:var(--accent-cyan);" id="cw-total-score">0</span>
-      </div>
-    </div>
-
-    <div class="cw-nav-btns">
-      <button class="btn btn-primary"   id="cw-next-btn"    onclick="cwNextScenario()" style="display:none;">Next Scenario ▶</button>
-      <a      class="btn btn-green"     id="cw-proceed-btn" href="buildAgent.html"      style="display:none;">Proceed to Build ▶</a>
-      <button class="btn btn-secondary btn-sm" onclick="window.location.href='practiceCollaborativeWalkthrough.html'">◀ Back</button>
     </div>
 
   </div><!-- /#cw-reveal-screen -->

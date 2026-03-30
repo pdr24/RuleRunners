@@ -187,7 +187,7 @@ function cwShowPhase(phase) {
 
   // ── INTRO overlay ───────────────────────────────
   if (phase === 'intro') {
-    cwSetOverlay('blue', 'COLLABORATIVE WALKTHROUGH LEVEL', '');
+    cwSetOverlay('blue', 'COLLABORATIVE WALKTHROUGH', '');
     document.getElementById('cw-overlay-bottom').innerHTML =
       `One player identifies which sensors are active.<br>
        The other picks the rule — without seeing the environment.<br><br>
@@ -287,6 +287,8 @@ function cwDrawSensorCanvas() {
 function cwDrawRevealCanvas() {
   const canvas = document.getElementById('cw-canvas-reveal');
   if (!canvas) return;
+  canvas.width  = canvas.parentElement.clientWidth  || 400;
+  canvas.height = canvas.parentElement.clientHeight || 300;
   const ctx = canvas.getContext('2d');
   const sc  = CW_SCENARIOS[cwScenarioIdx];
   drawLevel(ctx, canvas.width, canvas.height, cwLevel, sc.agent, sc.camX, 'green');
@@ -426,16 +428,17 @@ function cwBuildReveal() {
 
   const roundScore = (cwSensorCorrect ? 1 : 0) + (cwRuleCorrect ? 1 : 0);
   cwTotalScore += roundScore;
-  document.getElementById('cw-round-score').textContent  = `Round score: ${roundScore} / 2`;
-  document.getElementById('cw-total-score').textContent  = `Total score: ${cwTotalScore}`;
-  document.getElementById('cw-sensor-result').textContent =
-    `Sensors: ${cwSensorCorrect ? '✓ Correct' : '✗ Incorrect'}`;
-  document.getElementById('cw-sensor-result').style.color =
-    cwSensorCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
-  document.getElementById('cw-rule-result').textContent =
-    `Rule: ${cwRuleCorrect ? '✓ Correct' : '✗ Incorrect'}`;
-  document.getElementById('cw-rule-result').style.color =
-    cwRuleCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
+
+  const sensorEl = document.getElementById('cw-sensor-result');
+  sensorEl.textContent = cwSensorCorrect ? '✓ Sensors correct' : '✗ Sensors incorrect';
+  sensorEl.style.color = cwSensorCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
+
+  const ruleEl = document.getElementById('cw-rule-result');
+  ruleEl.textContent = cwRuleCorrect ? '✓ Rule correct' : '✗ Rule incorrect';
+  ruleEl.style.color = cwRuleCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
+
+  document.getElementById('cw-round-score').textContent = `Round: ${roundScore} / 2`;
+  document.getElementById('cw-total-score').textContent = `Total score: ${cwTotalScore}`;
 
   cwBuildSensorReveal();
   cwBuildRuleReveal();

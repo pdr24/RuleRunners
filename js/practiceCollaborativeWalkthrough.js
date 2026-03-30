@@ -4,11 +4,15 @@
    Single-scenario practice run. Both players see
    the screen at all times — no overlays. All three
    panels (canvas, sensors, rules) are visible
-   simultaneously. Players submit sensors and rule
-   together in one action, then see the reveal.
+   simultaneously.
+
+   On submit, the layout does NOT change. Only:
+     - Sensor and rule cards recolour in place
+     - Instruction bar swaps to show score
+     - Context bar swaps to show explanation
+     - Submit button swaps to Try Again + Proceed
 
    Scoring: +1 sensors correct, +1 rule correct.
-   Proceed button always appears after one attempt.
    ═══════════════════════════════════════════════ */
 
 // ── RULES ────────────────────────────────────────
@@ -45,11 +49,7 @@ function pcwSnap(x, y, dir, sensors, grounded) {
   };
 }
 
-/* ── THE ONE PRACTICE SCENARIO ──────────────────
-   Four sensors active simultaneously — students
-   must discuss all of them and understand rule
-   priority (gap_ahead beats hazard and coin).
-   ─────────────────────────────────────────────── */
+// ── THE ONE PRACTICE SCENARIO ────────────────────
 const PCW_SCENARIO = {
   context: 'The agent is on a platform. A coin glints ahead — but so does a hazard spike! The platform edge is also approaching. Determine which are close enough to trigger the sensors!',
   camX: 0,
@@ -57,9 +57,8 @@ const PCW_SCENARIO = {
     { grounded: true, coin_nearby: true, hazard_nearby: false, gap_ahead: false },
     true),
   activeSensors: ['grounded', 'coin_nearby'],
-  correctRule: 2,  // coin nearby -> dash
-  explanation: 'Two sensors are active: grounded, coin_nearby. Rules fire top-to-bottom — coin_nearby (Rule 3) is checked first and matches, so Rule 3 fires: DASH.',
-
+  correctRule: 2,  // coin_nearby → dash
+  explanation: 'Two sensors are active: grounded and coin_nearby. Rules fire top-to-bottom — gap_ahead? No. hazard_nearby? No. coin_nearby? Yes! Rule 3 fires: DASH.',
 };
 
 // ── STATE ────────────────────────────────────────
@@ -91,21 +90,20 @@ function pcwDrawCanvas() {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   drawLevel(ctx, canvas.width, canvas.height, pcwLevel, PCW_SCENARIO.agent, PCW_SCENARIO.camX, 'green');
-  pcwDrawRing(ctx, canvas.width, canvas.height);
+  pcwDrawRing(ctx);
 }
 
 function pcwDrawRing(ctx) {
   const agent = PCW_SCENARIO.agent;
-  const camX  = PCW_SCENARIO.camX;
-  const cx = agent.x - camX + agent.w / 2;
+  const cx = agent.x - PCW_SCENARIO.camX + agent.w / 2;
   const cy = agent.y + agent.h / 2;
   ctx.save();
   ctx.beginPath();
-  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
+  ctx.arc(cx, cy, SENSOR_RANGE, -Math.PI / 2, Math.PI / 2);
   ctx.fillStyle = 'rgba(255,255,255,0.04)';
   ctx.fill();
   ctx.beginPath();
-  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
+  ctx.arc(cx, cy, SENSOR_RANGE, -Math.PI / 2, Math.PI / 2);
   ctx.strokeStyle = 'rgba(255,255,255,0.55)';
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 4]);
@@ -115,18 +113,40 @@ function pcwDrawRing(ctx) {
 }
 
 // ── SENSOR PANEL ─────────────────────────────────
-function pcwRenderSensors() {
-  const list = document.getElementById('pcw-sensor-list');
-  const opts = [...PCW_SENSORS, { key: PCW_NONE_KEY, label: 'None of the above', color: '#3a5070' }];
+function pcwRenderSensors(revealMode = false) {
+  const list       = document.getElementById('pcw-sensor-list');
+  const correctSet = new Set(PCW_SCENARIO.activeSensors);
+  const opts       = [...PCW_SENSORS, { key: PCW_NONE_KEY, label: 'None of the above', color: '#3a5070' }];
+
   list.innerHTML = opts.map(s => {
-    const sel = pcwSelectedSensors.has(s.key);
+    const sel     = pcwSelectedSensors.has(s.key);
+    const isRight = correctSet.has(s.key);
+
+    let extraClass = '';
+    let style      = '';
+
+    if (revealMode) {
+      if (isRight && sel)  extraClass = 'pcw-correct';
+      else if (isRight)    extraClass = 'pcw-missed';
+      else if (sel)        extraClass = 'pcw-wrong';
+    } else {
+      if (sel) {
+        extraClass = 'pcw-selected';
+        style = `border-color:${s.color};background:${s.color}15;`;
+      }
+    }
+
+    const icon = revealMode
+      ? (isRight && sel ? '✓' : isRight && !sel ? '!' : sel ? '✗' : '○')
+      : (sel ? '✓' : '');
+
     return `
-      <div class="pcw-choice ${sel ? 'pcw-selected' : ''} ${pcwSubmitted ? 'pcw-locked' : ''}"
+      <div class="pcw-choice ${extraClass} ${pcwSubmitted ? 'pcw-locked' : ''}"
            onclick="pcwToggleSensor('${s.key}')"
-           style="${sel ? `border-color:${s.color};background:${s.color}15;` : ''}">
+           style="${style}">
         <span class="pcw-choice-dot" style="background:${s.key !== PCW_NONE_KEY ? s.color : 'var(--text-dim)'}"></span>
         <span class="pcw-choice-label">${s.label}</span>
-        ${sel ? '<span class="pcw-tick">✓</span>' : ''}
+        ${icon ? `<span class="pcw-tick">${icon}</span>` : ''}
       </div>`;
   }).join('');
 }
@@ -145,15 +165,29 @@ function pcwToggleSensor(key) {
 }
 
 // ── RULE PANEL ───────────────────────────────────
-function pcwRenderRules() {
+function pcwRenderRules(revealMode = false) {
   const list = document.getElementById('pcw-rule-list');
   list.innerHTML = PCW_RULES.map((r, i) => {
     const sel = pcwSelectedRule === i;
+    let extraClass = '';
+
+    if (revealMode) {
+      if (i === PCW_SCENARIO.correctRule)                        extraClass = 'pcw-correct';
+      else if (sel && i !== PCW_SCENARIO.correctRule)            extraClass = 'pcw-wrong';
+    } else {
+      if (sel) extraClass = 'pcw-selected';
+    }
+
+    const icon = revealMode
+      ? (i === PCW_SCENARIO.correctRule ? '✓' : sel ? '✗' : '')
+      : '';
+
     return `
-      <div class="pcw-choice ${sel ? 'pcw-selected' : ''} ${pcwSubmitted ? 'pcw-locked' : ''}"
+      <div class="pcw-choice ${extraClass} ${pcwSubmitted ? 'pcw-locked' : ''}"
            onclick="pcwSelectRule(${i})">
         <span class="pcw-rule-num">${i + 1}</span>
         <span class="pcw-choice-label">${ruleHTML(r.cond, r.action)}</span>
+        ${icon ? `<span class="pcw-tick">${icon}</span>` : ''}
       </div>`;
   }).join('');
 }
@@ -169,8 +203,7 @@ function pcwSubmit() {
   // Validate
   let valid = true;
   if (pcwSelectedSensors.size === 0) {
-    document.getElementById('pcw-sensor-feedback').textContent =
-      '⚠ Select at least one sensor (or "None").';
+    document.getElementById('pcw-sensor-feedback').textContent = '⚠ Select at least one sensor (or "None").';
     valid = false;
   } else {
     document.getElementById('pcw-sensor-feedback').textContent = '';
@@ -191,73 +224,30 @@ function pcwSubmit() {
   const ruleCorrect    = pcwSelectedRule === PCW_SCENARIO.correctRule;
   const score          = (sensorCorrect ? 1 : 0) + (ruleCorrect ? 1 : 0);
 
-  // Show reveal screen
-  document.getElementById('pcw-main-screen').style.display   = 'none';
-  document.getElementById('pcw-reveal-screen').style.display = 'flex';
+  // Recolour cards in place
+  pcwRenderSensors(true);
+  pcwRenderRules(true);
 
-  document.getElementById('pcw-explanation').textContent = PCW_SCENARIO.explanation;
-  document.getElementById('pcw-round-score').textContent  = `${score} / 2`;
+  // Swap instruction bar → score summary
+  document.getElementById('pcw-instruction-bar').innerHTML = `
+    <span id="pcw-sensor-result"></span> &nbsp;|&nbsp;
+    <span id="pcw-rule-result"></span> &nbsp;|&nbsp;
+    Score: <strong style="color:var(--accent-cyan);" id="pcw-score-val"></strong>`;
+  document.getElementById('pcw-sensor-result').textContent = sensorCorrect ? '✓ Sensors correct' : '✗ Sensors incorrect';
+  document.getElementById('pcw-sensor-result').style.color = sensorCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
+  document.getElementById('pcw-rule-result').textContent   = ruleCorrect   ? '✓ Rule correct'    : '✗ Rule incorrect';
+  document.getElementById('pcw-rule-result').style.color   = ruleCorrect   ? 'var(--accent-green)' : 'var(--accent-red)';
+  document.getElementById('pcw-score-val').textContent     = `${score} / 2`;
 
-  document.getElementById('pcw-sensor-result').textContent =
-    sensorCorrect ? '✓ Correct' : '✗ Incorrect';
-  document.getElementById('pcw-sensor-result').style.color =
-    sensorCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
+  // Swap context bar → explanation
+  const ctxBar = document.getElementById('pcw-context-bar');
+  ctxBar.innerHTML = `<strong>EXPLANATION ▸</strong> <span>${PCW_SCENARIO.explanation}</span>`;
+  ctxBar.style.background  = 'rgba(139,92,246,0.08)';
+  ctxBar.style.borderColor = 'rgba(139,92,246,0.25)';
 
-  document.getElementById('pcw-rule-result').textContent =
-    ruleCorrect ? '✓ Correct' : '✗ Incorrect';
-  document.getElementById('pcw-rule-result').style.color =
-    ruleCorrect ? 'var(--accent-green)' : 'var(--accent-red)';
-
-  // Sensor reveal
-  const allOpts = [...PCW_SENSORS, { key: PCW_NONE_KEY, label: 'None of the above' }];
-  document.getElementById('pcw-reveal-sensors').innerHTML = allOpts.map(s => {
-    const wasSel   = pcwSelectedSensors.has(s.key);
-    const isRight  = correctSensors.has(s.key);
-    let cls = 'pcw-reveal-item', icon = '○';
-    if (isRight && wasSel)   { cls += ' pcw-reveal-correct'; icon = '✓'; }
-    else if (isRight && !wasSel) { cls += ' pcw-reveal-missed';  icon = '!'; }
-    else if (!isRight && wasSel) { cls += ' pcw-reveal-wrong';   icon = '✗'; }
-    return `<div class="${cls}"><span class="pcw-reveal-icon">${icon}</span>${s.label}</div>`;
-  }).join('');
-
-  // Rule reveal
-  document.getElementById('pcw-reveal-rules').innerHTML = PCW_RULES.map((r, i) => {
-    let cls = 'pcw-reveal-item', icon = '○';
-    if (i === PCW_SCENARIO.correctRule)                           { cls += ' pcw-reveal-correct'; icon = '✓'; }
-    if (i === pcwSelectedRule && i !== PCW_SCENARIO.correctRule)  { cls += ' pcw-reveal-wrong';   icon = '✗'; }
-    return `<div class="${cls}"><span class="pcw-reveal-icon">${icon}</span>${ruleHTML(r.cond, r.action)}</div>`;
-  }).join('');
-
-  // Draw reveal canvas
-  setTimeout(() => {
-    const canvas = document.getElementById('pcw-canvas-reveal');
-    if (!canvas) return;
-    canvas.width  = canvas.parentElement.clientWidth  || 400;
-    canvas.height = canvas.parentElement.clientHeight || 200;
-    const ctx = canvas.getContext('2d');
-    drawLevel(ctx, canvas.width, canvas.height, pcwLevel, PCW_SCENARIO.agent, PCW_SCENARIO.camX, 'green');
-    pcwDrawRevealRing(ctx);
-  }, 30);
-}
-
-function pcwDrawRevealRing(ctx) {
-  const agent = PCW_SCENARIO.agent;
-  const camX  = PCW_SCENARIO.camX;
-  const cx = agent.x - camX + agent.w / 2;
-  const cy = agent.y + agent.h / 2;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,0.04)';
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
-  ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-  ctx.lineWidth = 2;
-  ctx.setLineDash([6, 4]);
-  ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.restore();
+  // Swap submit → nav buttons
+  document.getElementById('pcw-submit-btn').style.display = 'none';
+  document.getElementById('pcw-nav-btns').style.display   = 'flex';
 }
 
 // ── RESTART ──────────────────────────────────────
@@ -267,10 +257,22 @@ function pcwRestart() {
   pcwSubmitted       = false;
   pcwLevel           = createLevel();
 
-  document.getElementById('pcw-main-screen').style.display   = 'flex';
-  document.getElementById('pcw-reveal-screen').style.display = 'none';
   document.getElementById('pcw-sensor-feedback').textContent = '';
   document.getElementById('pcw-rule-feedback').textContent   = '';
+
+  // Restore instruction bar
+  document.getElementById('pcw-instruction-bar').innerHTML =
+    `👥 <span>Both players — look at the environment, agree on which sensors are active, then agree on which rule fires. Submit when ready.</span>`;
+
+  // Restore context bar
+  const ctxBar = document.getElementById('pcw-context-bar');
+  ctxBar.innerHTML         = `<strong>SITUATION ▸</strong> <span id="pcw-context">${PCW_SCENARIO.context}</span>`;
+  ctxBar.style.background  = 'rgba(0,128,255,0.07)';
+  ctxBar.style.borderColor = 'var(--border)';
+
+  // Swap nav → submit
+  document.getElementById('pcw-submit-btn').style.display = '';
+  document.getElementById('pcw-nav-btns').style.display   = 'none';
 
   pcwRenderSensors();
   pcwRenderRules();

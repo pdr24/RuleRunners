@@ -439,6 +439,7 @@ function drawLevel(ctx, W, H, level, agent, camX, agentColor) {
 
   // Sensor overlays
   const s = ag.sensors;
+  /** 
   if (s.gap_ahead) {
     ctx.beginPath();
     ctx.arc(agX + ag.w/2 + ag.dir * SENSOR_GAP_DIST, agY + ag.h, 12, 0, Math.PI*2);
@@ -467,6 +468,7 @@ function drawLevel(ctx, W, H, level, agent, camX, agentColor) {
     ctx.strokeStyle = 'rgba(139,92,246,0.5)';
     ctx.lineWidth = 1.5; ctx.stroke();
   }
+    */
 
   // Agent body
   ctx.shadowBlur = 14; ctx.shadowColor = aColor;

@@ -8,7 +8,6 @@
   <style>
     body { overflow: hidden; height: 100vh; }
 
-    /* ── PAGE WRAPPER ── */
     .pcw-page {
       flex: 1;
       display: flex;
@@ -44,43 +43,42 @@
       letter-spacing: 1px;
     }
 
-    /* ── INSTRUCTION STRIP ── */
-    .pcw-instruction-bar {
-      padding: 8px 16px;
+    /* ── INSTRUCTION BAR (swaps to score on submit) ── */
+    #pcw-instruction-bar {
+      padding: 7px 16px;
       background: rgba(0,255,136,0.06);
       border-bottom: 1px solid rgba(0,255,136,0.15);
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--accent-green);
       flex-shrink: 0;
     }
-    .pcw-instruction-bar span { color: var(--text-secondary); }
+    #pcw-instruction-bar span { color: var(--text-secondary); }
 
-    /* ── CONTEXT BAR ── */
-    .pcw-context-bar {
-      padding: 9px 16px;
+    /* ── CONTEXT BAR (swaps to explanation on submit) ── */
+    #pcw-context-bar {
+      padding: 8px 16px;
       background: rgba(0,128,255,0.07);
       border-bottom: 1px solid var(--border);
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--text-secondary);
       font-family: 'Exo 2', sans-serif;
       flex-shrink: 0;
       line-height: 1.4;
+      transition: background 0.3s, border-color 0.3s;
     }
-    .pcw-context-bar strong {
+    #pcw-context-bar strong {
       font-family: 'Orbitron', sans-serif;
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       letter-spacing: 1px;
       color: var(--accent-cyan);
     }
 
-    /* ── THREE-COLUMN MAIN LAYOUT ── */
+    /* ── THREE-COLUMN MAIN ── */
     .pcw-main {
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 260px 280px;
-      grid-template-columns: 1.2fr 22% 28%;
-
+      grid-template-columns: 1fr 25% 28%;
       overflow: hidden;
       min-height: 0;
     }
@@ -89,8 +87,8 @@
     .pcw-left {
       display: flex;
       flex-direction: column;
-      padding: 12px 10px 12px 16px;
-      gap: 10px;
+      padding: 10px 10px 10px 14px;
+      gap: 8px;
       overflow: hidden;
       min-height: 0;
     }
@@ -110,9 +108,9 @@
       position: absolute;
       top: 8px; left: 8px;
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       color: var(--accent-cyan);
-      background: rgba(0,0,0,0.6);
+      background: rgba(0,0,0,0.65);
       padding: 3px 8px;
       letter-spacing: 1px;
     }
@@ -125,12 +123,12 @@
     .pcw-legend-item {
       display: flex; align-items: center; gap: 5px;
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.6rem; color: var(--text-dim);
+      font-size: 0.58rem; color: var(--text-dim);
     }
     .pcw-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
 
-    /* ── MIDDLE: sensors ── */
-    .pcw-mid {
+    /* ── MIDDLE & RIGHT: panels ── */
+    .pcw-mid, .pcw-right {
       background: var(--bg-panel);
       border-left: 1px solid var(--border);
       display: flex;
@@ -138,32 +136,22 @@
       overflow: hidden;
     }
 
-    /* ── RIGHT: rules ── */
-    .pcw-right {
-      background: var(--bg-panel);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* ── SHARED PANEL HEADER ── */
     .pcw-panel-header {
-      padding: 12px 14px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
     .pcw-panel-header h3 {
       font-family: 'Orbitron', sans-serif;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 2px;
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .pcw-panel-header p {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.65rem;
+      font-size: 0.63rem;
       color: var(--text-dim);
       line-height: 1.4;
     }
@@ -172,10 +160,10 @@
     .pcw-choice-list {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 10px;
+      padding: 8px 10px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
     .pcw-choice-list::-webkit-scrollbar { width: 3px; }
     .pcw-choice-list::-webkit-scrollbar-thumb { background: var(--border); }
@@ -184,211 +172,60 @@
     .pcw-choice {
       background: var(--bg-panel2);
       border: 2px solid var(--border);
-      padding: 9px 11px;
+      padding: 8px 11px;
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 8px;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
       user-select: none;
     }
-    .pcw-choice:hover { border-color: var(--border-bright); background: rgba(255,255,255,0.02); }
-    .pcw-choice.pcw-selected {
-      border-color: var(--accent-cyan);
-      background: rgba(0,245,255,0.07);
-    }
-    .pcw-choice.pcw-correct {
-      border-color: var(--accent-green) !important;
-      background: rgba(0,255,136,0.08) !important;
-      cursor: default;
-    }
-    .pcw-choice.pcw-wrong {
-      border-color: var(--accent-red) !important;
-      background: rgba(255,45,85,0.08) !important;
-      cursor: default;
-    }
-    .pcw-choice.pcw-locked { cursor: default; }
+    .pcw-choice:hover        { border-color: var(--border-bright); background: rgba(255,255,255,0.02); }
+    .pcw-choice.pcw-selected { border-color: var(--accent-cyan);   background: rgba(0,245,255,0.07); }
+    .pcw-choice.pcw-correct  { border-color: var(--accent-green)  !important; background: rgba(0,255,136,0.09)  !important; cursor: default; }
+    .pcw-choice.pcw-wrong    { border-color: var(--accent-red)    !important; background: rgba(255,45,85,0.09)  !important; cursor: default; }
+    .pcw-choice.pcw-missed   { border-color: var(--accent-yellow) !important; background: rgba(255,214,10,0.08) !important; cursor: default; }
+    .pcw-choice.pcw-locked   { cursor: default; }
 
-    .pcw-choice-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
+    .pcw-choice-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .pcw-choice-label {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       flex: 1;
       color: var(--text-primary);
       line-height: 1.3;
     }
-    .pcw-tick {
-      font-size: 0.8rem;
-      color: var(--accent-cyan);
-      flex-shrink: 0;
-    }
-    .pcw-rule-num {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.6rem;
-      color: var(--text-dim);
-      width: 16px;
-      flex-shrink: 0;
-    }
+    .pcw-tick     { font-size: 0.78rem; color: var(--accent-cyan); flex-shrink: 0; }
+    .pcw-rule-num { font-family: 'Orbitron', sans-serif; font-size: 0.58rem; color: var(--text-dim); width: 14px; flex-shrink: 0; }
 
     /* ── PANEL FOOTER ── */
     .pcw-panel-footer {
-      padding: 10px 12px;
+      padding: 8px 12px;
       border-top: 1px solid var(--border);
       flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-    }
-    .pcw-feedback {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.68rem;
-      color: var(--accent-red);
-      min-height: 14px;
-    }
-
-    /* ── REVEAL SCREEN ── */
-    .pcw-reveal-screen {
-      flex: 1;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      min-height: 0;
-    }
-    .pcw-reveal-layout {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      overflow: hidden;
-      min-height: 0;
-    }
-    .pcw-reveal-col {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border-right: 1px solid var(--border);
-    }
-    .pcw-reveal-col:last-child { border-right: none; }
-    .pcw-reveal-col-header {
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      flex-shrink: 0;
-    }
-    .pcw-reveal-col-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 10px 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
-    .pcw-reveal-canvas-wrap {
-      flex: 1;
-      min-height: 0;
-      margin: 10px;
-      position: relative;
-    }
-    #pcw-canvas-reveal {
-      width: 100%; height: 100%;
-      display: block;
-      background: #060c18;
-      border: 1px solid var(--border);
-    }
-
-    /* Reveal items */
-    .pcw-reveal-item {
+    .pcw-feedback {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
-      padding: 7px 10px;
-      border: 1px solid var(--border);
-      background: var(--bg-panel2);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-secondary);
-    }
-    .pcw-reveal-correct { border-color: var(--accent-green) !important; color: var(--accent-green) !important; background: rgba(0,255,136,0.07) !important; }
-    .pcw-reveal-wrong   { border-color: var(--accent-red)   !important; color: var(--accent-red)   !important; background: rgba(255,45,85,0.07)  !important; }
-    .pcw-reveal-missed  { border-color: var(--accent-yellow)!important; color: var(--accent-yellow)!important; background: rgba(255,214,10,0.07) !important; }
-    .pcw-reveal-icon { font-size: 0.75rem; flex-shrink: 0; width: 14px; }
-
-    .pcw-explanation-bar {
-      padding: 10px 16px;
-      background: rgba(139,92,246,0.07);
-      border-bottom: 1px solid rgba(139,92,246,0.2);
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      font-family: 'Exo 2', sans-serif;
-      flex-shrink: 0;
-      line-height: 1.5;
-    }
-    .pcw-explanation-bar strong {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.62rem;
-      letter-spacing: 1px;
-      color: var(--accent-purple);
-    }
-    .pcw-legend-key {
-      padding: 6px 16px;
-      display: flex;
-      gap: 18px;
-      flex-shrink: 0;
-      border-bottom: 1px solid var(--border);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.62rem;
-    }
-    .pcw-lk-correct { color: var(--accent-green); }
-    .pcw-lk-wrong   { color: var(--accent-red); }
-    .pcw-lk-missed  { color: var(--accent-yellow); }
-
-    .pcw-score-bar {
-      padding: 10px 20px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 24px;
-      align-items: center;
-      flex-shrink: 0;
-      background: var(--bg-panel);
-      flex-wrap: wrap;
-    }
-    .pcw-score-item { display: flex; flex-direction: column; gap: 2px; }
-    .pcw-score-lbl  { font-family: 'Orbitron', sans-serif; font-size: 0.55rem; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
-    .pcw-score-val  { font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; }
-
-    .pcw-nav-btns {
-      padding: 10px 16px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-shrink: 0;
-      border-top: 1px solid var(--border);
+      font-size: 0.65rem;
+      color: var(--accent-red);
+      min-height: 14px;
     }
 
     @media (max-width: 900px) {
       body { overflow: auto; height: auto; }
-      .pcw-main          { grid-template-columns: 1fr; }
-      .pcw-reveal-layout { grid-template-columns: 1fr; }
+      .pcw-main { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
   <div id="toast"></div>
-  <header class="app-header" data-phase="02"></header>
+  <header class="app-header" data-phase="04"></header>
   <script src="js/nav.js"></script>
 
-  <!-- ══════════════════════════════════════════
-       MAIN SCREEN — all 3 columns always visible
-  ═══════════════════════════════════════════ -->
   <div class="pcw-page" id="pcw-main-screen">
 
     <div class="pcw-top-bar">
@@ -396,17 +233,19 @@
       <span class="pcw-badge">Practice Round · 1 Scenario</span>
     </div>
 
-    <div class="pcw-instruction-bar">
+    <!-- Swaps to score summary on submit; restored on restart -->
+    <div id="pcw-instruction-bar">
       👥 <span>Both players — look at the environment, agree on which sensors are active, then agree on which rule fires. Submit when ready.</span>
     </div>
 
-    <div class="pcw-context-bar">
+    <!-- Swaps to explanation on submit; restored on restart -->
+    <div id="pcw-context-bar">
       <strong>SITUATION ▸</strong> <span id="pcw-context"></span>
     </div>
 
     <div class="pcw-main">
 
-      <!-- LEFT: game canvas -->
+      <!-- LEFT: canvas — never changes -->
       <div class="pcw-left">
         <div class="pcw-canvas-wrap">
           <canvas id="pcw-canvas"></canvas>
@@ -421,11 +260,11 @@
         </div>
       </div>
 
-      <!-- MIDDLE: sensor selection -->
+      <!-- MIDDLE: sensors — cards recolour on submit -->
       <div class="pcw-mid">
         <div class="pcw-panel-header">
           <h3 style="color:var(--accent-cyan);">📡 Active Sensors?</h3>
-          <p>Select ALL sensors that are currently active for this agent.</p>
+          <p>Select ALL sensors currently active for this agent.</p>
         </div>
         <div class="pcw-choice-list" id="pcw-sensor-list"></div>
         <div class="pcw-panel-footer">
@@ -433,88 +272,33 @@
         </div>
       </div>
 
-      <!-- RIGHT: rule selection + submit -->
+      <!-- RIGHT: rules + submit/nav — cards recolour on submit -->
       <div class="pcw-right">
         <div class="pcw-panel-header">
           <h3 style="color:var(--accent-orange);">⚡ Which Rule Fires?</h3>
-          <p>Rules check top-to-bottom. Pick the first one whose condition matches.</p>
+          <p>Rules check top-to-bottom. Pick the first match.</p>
         </div>
         <div class="pcw-choice-list" id="pcw-rule-list"></div>
         <div class="pcw-panel-footer">
           <div class="pcw-feedback" id="pcw-rule-feedback"></div>
-          <button class="btn btn-primary" onclick="pcwSubmit()">Check Answers ▶</button>
+
+          <!-- Submit button — hidden after submit -->
+          <button class="btn btn-primary" id="pcw-submit-btn" onclick="pcwSubmit()">
+            Check Answers ▶
+          </button>
+
+          <!-- Nav buttons — shown after submit -->
+          <div id="pcw-nav-btns" style="display:none; flex-direction:row; gap:8px;">
+            <button class="btn btn-secondary btn-sm" onclick="pcwRestart()">↺ Try Again</button>
+            <a class="btn btn-primary" href="collaborativeWalkthrough.html" style="flex:1; text-align:center;">
+              Proceed ▶
+            </a>
+          </div>
         </div>
       </div>
 
     </div>
-  </div><!-- /#pcw-main-screen -->
-
-  <!-- ══════════════════════════════════════════
-       REVEAL SCREEN
-  ═══════════════════════════════════════════ -->
-  <div class="pcw-reveal-screen" id="pcw-reveal-screen">
-
-    <div class="pcw-top-bar">
-      <span class="pcw-phase-label" style="color:var(--accent-green);">✓ Results</span>
-      <span class="pcw-badge">Practice Round</span>
-    </div>
-
-    <div class="pcw-explanation-bar">
-      <strong>EXPLANATION ▸</strong> <span id="pcw-explanation"></span>
-    </div>
-
-    <div class="pcw-legend-key">
-      <span class="pcw-lk-correct">✓ Correct</span>
-      <span class="pcw-lk-wrong">✗ Incorrect selection</span>
-      <span class="pcw-lk-missed">! Missed (should have selected)</span>
-      <span style="color:var(--text-dim);">○ Not selected, not needed</span>
-    </div>
-
-    <div class="pcw-reveal-layout">
-
-      <!-- Environment -->
-      <div class="pcw-reveal-col">
-        <div class="pcw-reveal-col-header">🗺 Environment</div>
-        <div class="pcw-reveal-canvas-wrap">
-          <canvas id="pcw-canvas-reveal"></canvas>
-        </div>
-      </div>
-
-      <!-- Sensors -->
-      <div class="pcw-reveal-col">
-        <div class="pcw-reveal-col-header">📡 Sensors</div>
-        <div class="pcw-reveal-col-body" id="pcw-reveal-sensors"></div>
-      </div>
-
-      <!-- Rules -->
-      <div class="pcw-reveal-col">
-        <div class="pcw-reveal-col-header">⚡ Rules</div>
-        <div class="pcw-reveal-col-body" id="pcw-reveal-rules"></div>
-      </div>
-
-    </div>
-
-    <div class="pcw-score-bar">
-      <div class="pcw-score-item">
-        <span class="pcw-score-lbl">Sensors</span>
-        <span class="pcw-score-val" id="pcw-sensor-result">—</span>
-      </div>
-      <div class="pcw-score-item">
-        <span class="pcw-score-lbl">Rule</span>
-        <span class="pcw-score-val" id="pcw-rule-result">—</span>
-      </div>
-      <div class="pcw-score-item">
-        <span class="pcw-score-lbl">Score</span>
-        <span class="pcw-score-val" style="color:var(--accent-cyan);" id="pcw-round-score">0 / 2</span>
-      </div>
-    </div>
-
-    <div class="pcw-nav-btns">
-      <button class="btn btn-secondary btn-sm" onclick="pcwRestart()">↺ Try Again</button>
-      <a class="btn btn-primary" href="collaborativeWalkthrough.html">Proceed to Collaborative Walkthrough ▶</a>
-    </div>
-
-  </div><!-- /#pcw-reveal-screen -->
+  </div>
 
   <script src="js/engine.js"></script>
   <script src="js/practiceCollaborativeWalkthrough.js"></script>

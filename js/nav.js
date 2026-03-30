@@ -19,12 +19,13 @@
    ═══════════════════════════════════════════════ */
 
 const PHASES = [
-  { id: '01',  label: '01',  title: 'What Is Rule-Based AI?', href: 'whatIsRuleBasedAI.html' },
-  { id: '02', label: '02', title: 'Sensor Detection',       href: 'sensorDetection.html'  },
-  { id: '03', label: '03', title: 'Guided Walkthrough',     href: 'guidedWalkthrough.html' },
-  { id: '04',  label: '04',  title: 'Build Your Agent',       href: 'buildAgent.html'        },
-  { id: '05',  label: '05',  title: 'Compete',                href: 'compete.html'           },
-  { id: '06', label: '06', title: 'Story',                  href: 'story.html' },
+  { id: '01', label: '01', title: 'What Is Rule-Based AI?',      href: 'whatIsRuleBasedAI.html'        },
+  { id: '02', label: '02', title: 'Sensor Detection',            href: 'sensorDetection.html'          },
+  { id: '03', label: '03', title: 'Guided Walkthrough',          href: 'guidedWalkthrough.html'        },
+  { id: '04', label: '04', title: 'Collaborative Walkthrough',   href: 'collaborativeWalkthrough.html' },
+  { id: '05', label: '05', title: 'Build Your Agent',            href: 'buildAgent.html'               },
+  { id: '06', label: '06', title: 'Compete',                     href: 'compete.html'                  },
+  { id: '07', label: '07', title: 'Story',                       href: 'story.html'                    },
 ];
 
 (function buildNav() {

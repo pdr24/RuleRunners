@@ -166,7 +166,7 @@ function _simStep() {
 function drawBuildFrame() {
   const canvas = document.getElementById('build-canvas');
   const ctx    = canvas.getContext('2d');
-  drawLevel(ctx, canvas.width, canvas.height, buildLevel, buildAgent, buildCamX, null);
+  drawLevel(ctx, canvas.width, canvas.height, buildLevel, buildAgent, buildCamX, null, true);
 }
 
 // ── PROCEED TO COMPETE ───────────────────────────

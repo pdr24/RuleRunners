@@ -327,7 +327,7 @@ function calcScore(agent) {
 }
 
 // ── LEVEL RENDERER ───────────────────────────────
-function drawLevel(ctx, W, H, level, agent, camX, agentColor) {
+function drawLevel(ctx, W, H, level, agent, camX, agentColor, showSensorOverlays=false) {
   const ox = -camX; // world-to-screen x offset
 
   // Background
@@ -437,38 +437,41 @@ function drawLevel(ctx, W, H, level, agent, camX, agentColor) {
                : agentColor === 'orange' ? '#ff6b35'
                : '#00ff88';
 
-  // Sensor overlays
-  const s = ag.sensors;
-  /** 
-  if (s.gap_ahead) {
-    ctx.beginPath();
-    ctx.arc(agX + ag.w/2 + ag.dir * SENSOR_GAP_DIST, agY + ag.h, 12, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(0,245,255,0.15)';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,245,255,0.5)';
-    ctx.lineWidth = 1.5; ctx.stroke();
+  if (showSensorOverlays)
+  {
+
+    // Sensor overlays
+    const s = ag.sensors;
+    
+    if (s.gap_ahead) {
+      ctx.beginPath();
+      ctx.arc(agX + ag.w/2 + ag.dir * SENSOR_GAP_DIST, agY + ag.h, 12, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(0,245,255,0.15)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,245,255,0.5)';
+      ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    if (s.coin_nearby) {
+      ctx.beginPath();
+      ctx.arc(agX + ag.w/2, agY + ag.h/2, SENSOR_COIN_DIST, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,214,10,0.15)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
+    }
+    if (s.hazard_nearby) {
+      ctx.beginPath();
+      ctx.arc(agX + ag.w/2, agY + ag.h/2, SENSOR_HAZ_DIST, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(255,45,85,0.25)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+    }
+    if (s.near_wall) {
+      ctx.beginPath();
+      ctx.arc(agX + ag.w/2, agY + ag.h/2, 20, 0, Math.PI*2);
+      ctx.strokeStyle = 'rgba(139,92,246,0.5)';
+      ctx.lineWidth = 1.5; ctx.stroke();
+    }
   }
-  if (s.coin_nearby) {
-    ctx.beginPath();
-    ctx.arc(agX + ag.w/2, agY + ag.h/2, SENSOR_COIN_DIST, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(255,214,10,0.15)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4,4]); ctx.stroke(); ctx.setLineDash([]);
-  }
-  if (s.hazard_nearby) {
-    ctx.beginPath();
-    ctx.arc(agX + ag.w/2, agY + ag.h/2, SENSOR_HAZ_DIST, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(255,45,85,0.25)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
-  }
-  if (s.near_wall) {
-    ctx.beginPath();
-    ctx.arc(agX + ag.w/2, agY + ag.h/2, 20, 0, Math.PI*2);
-    ctx.strokeStyle = 'rgba(139,92,246,0.5)';
-    ctx.lineWidth = 1.5; ctx.stroke();
-  }
-    */
 
   // Agent body
   ctx.shadowBlur = 14; ctx.shadowColor = aColor;

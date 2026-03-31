@@ -57,7 +57,7 @@ const CW_SCENARIOS = [
   {
     context: 'The agent is on the opening platform. A coin glitters just ahead.',
     camX: 0,
-    agent: cwSnap(60, 272, 1, { grounded: true, coin_nearby: true }, true),
+    agent: cwSnap(70, 272, 1, { grounded: true, coin_nearby: true }, true),
     activeSensors: ['grounded', 'coin_nearby'],
     correctRule: 2,
     explanation: 'The agent is grounded and a coin is nearby. Rules are checked top-to-bottom — gap_ahead? No. hazard_nearby? No. coin_nearby? Yes! Rule 3 fires: DASH.',
@@ -65,7 +65,7 @@ const CW_SCENARIOS = [
   {
     context: 'Clear ground, nothing special detected. The agent moves forward.',
     camX: 0,
-    agent: cwSnap(140, 272, 1, { grounded: true }, true),
+    agent: cwSnap(130, 272, 1, { grounded: true }, true),
     activeSensors: ['grounded'],
     correctRule: 3,
     explanation: 'Only grounded is active. No gap, no hazard, no coin, no wall. The fallback rule — Rule 4 — fires: MOVE RIGHT.',

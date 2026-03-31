@@ -10,7 +10,7 @@ const SENSOR_COIN_DIST = SENSOR_RANGE;
 const SENSOR_HAZ_DIST  = SENSOR_RANGE;
 //const SENSOR_WALL_DIST = 16;
 
-const GRAVITY = 0.43;
+const GRAVITY = 0.40;
 const JUMP_V = -8.8;
 const MOVE_SPEED = 1.5;
 const DASH_SPEED = 3;

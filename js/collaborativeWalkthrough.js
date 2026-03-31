@@ -281,18 +281,28 @@ function cwDrawRing(ctx, agent, camX) {
   const ox = -camX;
   const cx = agent.x + ox + agent.w / 2;
   const cy = agent.y + agent.h / 2;
+
+  // Front-facing semicircle angles
+  const startAngle = agent.dir === 1 ? -Math.PI / 2 : Math.PI / 2;
+  const endAngle   = agent.dir === 1 ?  Math.PI / 2 : 3 * Math.PI / 2;
+
   ctx.save();
+
+  // Filled half circle
   ctx.beginPath();
-  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
+  ctx.arc(cx, cy, SENSOR_RANGE, startAngle, endAngle);
   ctx.fillStyle = 'rgba(255,255,255,0.04)';
   ctx.fill();
+
+  // Dashed outline
   ctx.beginPath();
-  ctx.arc(cx, cy, SENSOR_RANGE, 0, Math.PI * 2);
+  ctx.arc(cx, cy, SENSOR_RANGE, startAngle, endAngle);
   ctx.strokeStyle = 'rgba(255,255,255,0.55)';
   ctx.lineWidth = 2;
   ctx.setLineDash([6, 4]);
   ctx.stroke();
   ctx.setLineDash([]);
+
   ctx.restore();
 }
 

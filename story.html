@@ -235,10 +235,11 @@
 
     <div class="story-footer">
       <a class="btn btn-secondary" href="compete.html">← Back</a>
-      <a class="btn" href="index.html">Next →</a>
+      <a class="btn" id="story-next-btn" href="index.html">Next →</a>
     </div>
   </div>
 
+  <script src="js/dataCollection.js"></script>
   <script>
     const canvas = document.getElementById('story-canvas');
     const ctx = canvas.getContext('2d');
@@ -300,6 +301,9 @@
       strokes.push(currentStroke);
       redraw();
       e.preventDefault();
+
+      // ── DATA COLLECTION: drawing started
+      dcStory_startDrawing();
     }
 
     function draw(e) {
@@ -311,8 +315,12 @@
     }
 
     function endDraw() {
+      if (!drawing) return;
       drawing = false;
       currentStroke = [];
+
+      // ── DATA COLLECTION: drawing paused (pen lifted)
+      dcStory_stopDrawing();
     }
 
     canvas.addEventListener('mousedown', startDraw);
@@ -336,6 +344,22 @@
     });
 
     redraw();
+
+    // ── DATA COLLECTION: start page timer, click counter, story bucket
+    // and track typing time on the textarea
+    dcStory_start();
+
+    const storyTextEl = document.getElementById('storyText');
+    storyTextEl.addEventListener('focus', dcStory_startTyping);
+    storyTextEl.addEventListener('blur',  dcStory_stopTyping);
+
+    // ── DATA COLLECTION: save data when Next is clicked
+    document.getElementById('story-next-btn').addEventListener('click', () => {
+      dcStory_recordSubmit({
+        scenarioText  : storyTextEl.value,
+        drawingDataUrl: canvas.toDataURL('image/png'),
+      });
+    });
   </script>
 </body>
 </html>

@@ -354,11 +354,13 @@
     storyTextEl.addEventListener('blur',  dcStory_stopTyping);
 
     // ── DATA COLLECTION: save data when Next is clicked
-    document.getElementById('story-next-btn').addEventListener('click', () => {
+    document.getElementById('story-next-btn').addEventListener('click', (e) => {
+      e.preventDefault();  // stop the href from navigating immediately
       dcStory_recordSubmit({
         scenarioText  : storyTextEl.value,
         drawingDataUrl: canvas.toDataURL('image/png'),
       });
+      dcLogout();  // downloads JSON, clears session, redirects to login
     });
   </script>
 </body>

@@ -118,9 +118,7 @@ const PHASES = [
     if (input === null) return;
 
     if (input === 'ecg@123') {
-      sessionStorage.clear();
-      localStorage.clear();
-      window.location.href = 'login.html';
+        dcLogout();
     } else {
       alert('Incorrect password.');
     }

@@ -139,6 +139,9 @@ window.addEventListener('load', () => {
   cwResizeCanvas();
   cwShowPhase('intro');
   window.addEventListener('resize', cwResizeCanvas);
+
+  // ── DATA COLLECTION: start page timer and click counter
+  dcCW_start();
 });
 
 function cwResizeCanvas() {
@@ -197,12 +200,18 @@ function cwShowPhase(phase) {
     cwRenderSensorChoices();
     document.getElementById('cw-sensor-feedback').textContent = '';
 
+    // ── DATA COLLECTION: sensor phase begins
+    dcCW_beginSensorPhase();
+
     setTimeout(() => {
       cwResizeCanvas();
       cwDrawSensorCanvas();
     }, 30);
 
   } else if (phase === 'overlay-rule') {
+    // ── DATA COLLECTION: sensor phase ended, store selections
+    dcCW_sensorPlayerDone(Array.from(cwSelectedSensors));
+
     cwSetOverlay(
       cwSensorPlayerIdx === 0 ? 'orange' : 'blue',
       `${sensorName.toUpperCase()} — CLOSE YOUR EYES`,
@@ -225,7 +234,13 @@ function cwShowPhase(phase) {
     cwRenderRuleChoices();
     document.getElementById('cw-rule-feedback').textContent = '';
 
+    // ── DATA COLLECTION: rule phase begins
+    dcCW_beginRulePhase();
+
   } else if (phase === 'overlay-reveal') {
+    // ── DATA COLLECTION: rule player done, store selection
+    dcCW_rulePlayerDone(cwSelectedRule === -2 ? -1 : cwSelectedRule);
+
     cwSetOverlay('green', 'BOTH PLAYERS — LOOK NOW', 'TAP ANYWHERE TO REVEAL THE ANSWER');
     const overlayReveal = document.getElementById('cw-overlay');
     overlayReveal.onclick = null;
@@ -282,19 +297,16 @@ function cwDrawRing(ctx, agent, camX) {
   const cx = agent.x + ox + agent.w / 2;
   const cy = agent.y + agent.h / 2;
 
-  // Front-facing semicircle angles
   const startAngle = agent.dir === 1 ? -Math.PI / 2 : Math.PI / 2;
   const endAngle   = agent.dir === 1 ?  Math.PI / 2 : 3 * Math.PI / 2;
 
   ctx.save();
 
-  // Filled half circle
   ctx.beginPath();
   ctx.arc(cx, cy, SENSOR_RANGE, startAngle, endAngle);
   ctx.fillStyle = 'rgba(255,255,255,0.04)';
   ctx.fill();
 
-  // Dashed outline
   ctx.beginPath();
   ctx.arc(cx, cy, SENSOR_RANGE, startAngle, endAngle);
   ctx.strokeStyle = 'rgba(255,255,255,0.55)';
@@ -441,6 +453,27 @@ function cwBuildReveal() {
   document.getElementById('cw-round-score').textContent = `Round: ${roundScore} / 2`;
   document.getElementById('cw-total-score').textContent = `Total score: ${cwTotalScore}`;
 
+  // ── DATA COLLECTION: record the full reveal for this scenario
+  const playerChoice = cwSelectedRule === -2 ? -1 : cwSelectedRule;
+  dcCW_recordReveal({
+    correctSensors  : sc.activeSensors,
+    correctRule     : sc.correctRule,
+    sensorCorrect   : cwSensorCorrect,
+    ruleCorrect     : cwRuleCorrect,
+    roundScore,
+    // Was the rule correct given the sensors the sensor player actually selected?
+    ruleCorrectGivenSelectedSensors: (() => {
+      const firstMatchIdx = CW_RULES.findIndex(r => cwSelectedSensors.has(r.cond));
+      const adjustedFirst = sc.activeSensors.length === 0
+        ? -1   // no sensors active means no rule fires
+        : firstMatchIdx;
+      return playerChoice === adjustedFirst;
+    })(),
+  });
+
+  // ── DATA COLLECTION: start timing the results view
+  dcCW_startScenario(cwScenarioIdx, cwSensorPlayerIdx);
+
   cwBuildSensorReveal();
   cwBuildRuleReveal();
 
@@ -517,9 +550,16 @@ function cwBuildRuleReveal() {
 
 // ── NAVIGATION ───────────────────────────────────
 function cwNextScenario() {
+  // ── DATA COLLECTION: results view ended for this scenario
+  dcCW_endResultsView();
+
   cwScenarioIdx++;
   cwLevel = createLevel();
   cwSensorPlayerIdx = cwSensorPlayerIdx === 0 ? 1 : 0;
+
+  // ── DATA COLLECTION: start tracking the new scenario
+  dcCW_startScenario(cwScenarioIdx, cwSensorPlayerIdx);
+
   cwShowPhase('overlay-sensor');
 }
 

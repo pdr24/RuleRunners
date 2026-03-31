@@ -22,7 +22,7 @@ const CW_RULES = [
   { cond: 'gap_ahead',     action: 'jump'       },
   { cond: 'hazard_nearby', action: 'jump'       },
   { cond: 'coin_nearby',   action: 'dash'       },
-  { cond: 'near_wall',     action: 'change_dir' },
+  // { cond: 'near_wall',     action: 'change_dir' },
   { cond: 'grounded',      action: 'move_right' },
 ];
 
@@ -31,7 +31,7 @@ const CW_SENSORS = [
   { key: 'gap_ahead',     label: 'Gap ahead',     color: '#00f5ff' },
   { key: 'coin_nearby',   label: 'Coin nearby',   color: '#ffd60a' },
   { key: 'hazard_nearby', label: 'Hazard nearby', color: '#ff2d55' },
-  { key: 'near_wall',     label: 'Near wall',     color: '#8b5cf6' },
+  // { key: 'near_wall',     label: 'Near wall',     color: '#8b5cf6' },
   { key: 'grounded',      label: 'Grounded',      color: '#00ff88' },
 ];
 const CW_NONE_KEY = '__none__';
@@ -45,7 +45,8 @@ function cwSnap(x, y, dir, sensors, grounded) {
     resetCount: 0, activeRuleIdx: -1,
     sensors: Object.assign(
       { gap_ahead: false, coin_nearby: false, hazard_nearby: false,
-        grounded: false, near_wall: false },
+        grounded: false, //near_wall: false 
+      },
       sensors
     ),
   };
@@ -66,8 +67,8 @@ const CW_SCENARIOS = [
     camX: 0,
     agent: cwSnap(140, 272, 1, { grounded: true }, true),
     activeSensors: ['grounded'],
-    correctRule: 4,
-    explanation: 'Only grounded is active. No gap, no hazard, no coin, no wall. The fallback rule — Rule 5 — fires: MOVE RIGHT.',
+    correctRule: 3,
+    explanation: 'Only grounded is active. No gap, no hazard, no coin, no wall. The fallback rule — Rule 4 — fires: MOVE RIGHT.',
   },
   {
     context: 'The platform ends. A gap has been detected straight ahead!',

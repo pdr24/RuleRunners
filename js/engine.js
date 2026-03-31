@@ -8,7 +8,7 @@ const SENSOR_RANGE   = 50;   // universal detection radius for all sensors
 const SENSOR_GAP_DIST  = SENSOR_RANGE;
 const SENSOR_COIN_DIST = SENSOR_RANGE;
 const SENSOR_HAZ_DIST  = SENSOR_RANGE;
-const SENSOR_WALL_DIST = 16;
+//const SENSOR_WALL_DIST = 16;
 
 const GRAVITY = 0.43;
 const JUMP_V = -8.8;
@@ -26,7 +26,7 @@ const COND_LABELS = {
   coin_nearby:   'coin nearby',
   hazard_nearby: 'hazard nearby',
   grounded:      'grounded',
-  near_wall:     'near wall',
+  //near_wall:     'near wall',
 };
 const ACT_LABELS = {
   jump:       'jump',
@@ -126,7 +126,7 @@ function createAgent(startX) {
     activeRuleIdx: -1,
     sensors: {
       gap_ahead: false, coin_nearby: false,
-      hazard_nearby: false, grounded: false, near_wall: false,
+      hazard_nearby: false, grounded: false, //near_wall: false,
     },
   };
 }
@@ -178,6 +178,7 @@ function updateSensors(agent, level) {
   }
 
   // Near wall
+  /** 
   s.near_wall = false;
   const lookWall = cx + ag.dir * SENSOR_WALL_DIST;
   for (const p of level.platforms) {
@@ -186,6 +187,7 @@ function updateSensors(agent, level) {
       if (ag.dir < 0  && Math.abs(lookWall - (p.x + p.w)) < 10)   { s.near_wall = true; break; }
     }
   }
+    */
 }
 
 // ── RULE EVALUATOR ───────────────────────────────
@@ -198,7 +200,7 @@ function evaluateRules(agent, rules) {
     if (r.cond === 'coin_nearby'   && s.coin_nearby)   condMet = true;
     if (r.cond === 'hazard_nearby' && s.hazard_nearby) condMet = true;
     if (r.cond === 'grounded'      && s.grounded)      condMet = true;
-    if (r.cond === 'near_wall'     && s.near_wall)     condMet = true;
+    // if (r.cond === 'near_wall'     && s.near_wall)     condMet = true;
     if (condMet) { agent.activeRuleIdx = i; return r.action; }
   }
   agent.activeRuleIdx = -1;
@@ -501,10 +503,11 @@ function drawLevel(ctx, W, H, level, agent, camX, agentColor, showSensorOverlays
       drawSensorArc(Math.PI / 4, Math.PI / 4, 'rgba(255,45,85,0.95)');
     }
 
+    /** 
     if (s.near_wall) {
       // also on the front half, slightly wider
       drawSensorArc(0, Math.PI / 6, 'rgba(139,92,246,0.95)');
-    }
+    } */
 
     if (s.grounded) {
       // bottom-front

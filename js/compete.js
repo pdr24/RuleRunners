@@ -55,7 +55,33 @@ function initCompete() {
   document.getElementById('compete-start-btn').textContent = '▶ START COMPETITION';
 
   renderCompeteRules();
+  competeSetEditorLocked(false);
   setTimeout(() => { resizeCompeteCanvases(); drawCompeteFrame(); }, 60);
+}
+
+// ── LOCK / UNLOCK RULE EDITORS ────────────────────
+// Disables all rule editing controls for both players while competition runs.
+function competeSetEditorLocked(locked) {
+  ['a', 'b'].forEach(ag => {
+    document.getElementById(ag + '-cond').disabled   = locked;
+    document.getElementById(ag + '-action').disabled = locked;
+  });
+
+  // Add-rule buttons (identified by their onclick)
+  document.querySelectorAll('[onclick="competeAddRule(\'a\')"], [onclick="competeAddRule(\'b\')"]')
+    .forEach(btn => btn.disabled = locked);
+
+  // Delete buttons and drag handles on existing rule cards
+  document.querySelectorAll('.mini-rule-delete').forEach(btn => btn.disabled = locked);
+  document.querySelectorAll('.mini-rule-card').forEach(card => {
+    card.draggable = !locked;
+    card.style.cursor = locked ? 'default' : 'grab';
+  });
+
+  // Visual dimming of the add-rule rows
+  document.querySelectorAll('.mini-add-row').forEach(row => {
+    row.style.opacity = locked ? '0.4' : '1';
+  });
 }
 
 // ── CANVAS SIZING ────────────────────────────────
@@ -70,6 +96,7 @@ function resizeCompeteCanvases() {
 
 // ── RULE MANAGEMENT ──────────────────────────────
 function competeAddRule(ag) {
+  if (competeRunning) return;  // guard: no edits while running
   const cond   = document.getElementById(ag + '-cond').value;
   const action = document.getElementById(ag + '-action').value;
   if (!cond || !action) { showToast('⚠ Select condition and action!'); return; }
@@ -93,6 +120,7 @@ function competeAddRule(ag) {
 }
 
 function competeDeleteRule(ag, i) {
+  if (competeRunning) return;  // guard: no edits while running
   const arr = ag === 'a' ? competeRulesA : competeRulesB;
   arr.splice(i, 1);
   renderCompeteRules();
@@ -111,6 +139,7 @@ function _onCompeteRender(ctx) {
 }
 
 function _onCompeteDrop(e, targetIdx, ag) {
+  if (competeRunning) return;  // guard: no reorder while running
   dragDrop(e, targetIdx, ag, _getCompeteArr, _onCompeteRender);
 }
 
@@ -123,13 +152,15 @@ function renderCompeteRules() {
       return;
     }
     list.innerHTML = arr.map((r, i) => `
-      <div class="mini-rule-card" id="crule-${ag}-${i}" draggable="true"
+      <div class="mini-rule-card" id="crule-${ag}-${i}"
+           draggable="${!competeRunning}"
            ondragstart="dragStart(event,${i},'${ag}')"
            ondragover="event.preventDefault()"
-           ondrop="_onCompeteDrop(event,${i},'${ag}')">
+           ondrop="_onCompeteDrop(event,${i},'${ag}')"
+           style="cursor:${competeRunning ? 'default' : 'grab'}">
         <span class="mini-rule-num">${i + 1}</span>
         <span class="mini-rule-text">${miniRuleHTML(r.cond, r.action)}</span>
-        <button class="mini-rule-delete" onclick="competeDeleteRule('${ag}',${i})">✕</button>
+        <button class="mini-rule-delete" onclick="competeDeleteRule('${ag}',${i})" ${competeRunning ? 'disabled' : ''}>✕</button>
       </div>
     `).join('');
   });
@@ -144,6 +175,9 @@ function competeStart() {
   }
   competeRunning = true;
   document.getElementById('compete-start-btn').textContent = '⏸ Running…';
+
+  // Lock both editors for the duration of the competition
+  competeSetEditorLocked(true);
 
   // ── DATA COLLECTION: stop editing timers, start animation timer
   dcCompete_startAnimation();

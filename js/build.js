@@ -39,6 +39,30 @@ function initBuild() {
   document.getElementById('build-dist').textContent  = '0m';
   document.getElementById('build-active-rule-stat').textContent = '—';
   document.getElementById('build-firing-text').textContent = 'none';
+  buildSetEditorLocked(false);
+}
+
+// ── LOCK / UNLOCK RULE EDITOR ─────────────────────
+// Disables all rule editing controls while the agent is running.
+function buildSetEditorLocked(locked) {
+  // Add/remove rule UI
+  document.getElementById('build-cond-select').disabled   = locked;
+  document.getElementById('build-action-select').disabled = locked;
+
+  // The Add Rule button — find it by its onclick attribute text
+  const addBtn = document.querySelector('[onclick="buildAddRule()"]');
+  if (addBtn) addBtn.disabled = locked;
+
+  // All delete buttons and drag handles on existing rule cards
+  document.querySelectorAll('.rule-delete').forEach(btn => btn.disabled = locked);
+  document.querySelectorAll('.rule-card').forEach(card => {
+    card.draggable = !locked;
+    card.style.cursor = locked ? 'default' : 'grab';
+  });
+
+  // Visual dimming of the add-rule section
+  const addSection = document.querySelector('.add-rule-section');
+  if (addSection) addSection.style.opacity = locked ? '0.4' : '1';
 }
 
 // ── CANVAS SIZING ────────────────────────────────
@@ -52,6 +76,7 @@ function resizeBuildCanvas() {
 
 // ── RULE MANAGEMENT ──────────────────────────────
 function buildAddRule() {
+  if (buildRunning) return;  // guard: no edits while running
   const cond   = document.getElementById('build-cond-select').value;
   const action = document.getElementById('build-action-select').value;
   if (!cond || !action) { showToast('⚠ Select both a condition and an action!'); return; }
@@ -66,6 +91,7 @@ function buildAddRule() {
 }
 
 function buildDeleteRule(i) {
+  if (buildRunning) return;  // guard: no edits while running
   buildRules.splice(i, 1);
   renderBuildRules();
 }
@@ -90,19 +116,21 @@ function renderBuildRules() {
   }
 
   list.innerHTML = buildRules.map((r, i) => `
-    <div class="rule-card" id="brule-${i}" draggable="true"
+    <div class="rule-card" id="brule-${i}" draggable="${!buildRunning}"
          ondragstart="dragStart(event,${i},'build')"
          ondragover="event.preventDefault()"
-         ondrop="_onBuildDrop(event,${i})">
+         ondrop="_onBuildDrop(event,${i})"
+         style="cursor:${buildRunning ? 'default' : 'grab'}">
       <span class="drag-handle">⠿</span>
       <span class="rule-number">${i + 1}</span>
       <span class="rule-text">${ruleHTML(r.cond, r.action)}</span>
-      <button class="rule-delete" onclick="buildDeleteRule(${i})" title="Delete rule">✕</button>
+      <button class="rule-delete" onclick="buildDeleteRule(${i})" title="Delete rule" ${buildRunning ? 'disabled' : ''}>✕</button>
     </div>
   `).join('');
 }
 
 function _onBuildDrop(e, targetIdx) {
+  if (buildRunning) return;  // guard: no reorder while running
   dragDrop(e, targetIdx, 'build', _getBuildArr, _onBuildRender);
 }
 
@@ -112,6 +140,10 @@ function buildRun() {
   buildRunning = !buildRunning;
   document.getElementById('build-run-btn').textContent = buildRunning ? '⏸ PAUSE' : '▶ RUN';
   document.getElementById('build-status').textContent  = buildRunning ? 'RUNNING'  : 'PAUSED';
+
+  // Lock or unlock the editor whenever run state changes
+  buildSetEditorLocked(buildRunning);
+
   if (buildRunning) {
     // ── DATA COLLECTION: run button clicked — stop editing timer, start anim timer
     dcBuild_recordRunButtonClicked();

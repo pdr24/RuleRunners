@@ -263,6 +263,9 @@
 
   </div><!-- /.login-card -->
 
+  <!-- ── DATA COLLECTION ── -->
+  <script src="js/dataCollection.js"></script>
+
   <script>
     // Force last-initial fields to uppercase as the user types
     ['p1-last', 'p2-last'].forEach(id => {
@@ -309,11 +312,14 @@
         return;
       }
 
-      // All good — store in sessionStorage and navigate to home
+      // All good — store player info in sessionStorage
       sessionStorage.setItem('players', JSON.stringify({
         p1: { first: fields.p1First.value.trim(), last: fields.p1Last.value.trim(), grade: fields.p1Grade.value },
         p2: { first: fields.p2First.value.trim(), last: fields.p2Last.value.trim(), grade: fields.p2Grade.value },
       }));
+
+      // Initialise the data collection session (reads from 'players' key set above)
+      dcInitSession();
 
       window.location.href = 'index.html';
     }

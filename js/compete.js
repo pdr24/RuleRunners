@@ -198,6 +198,15 @@ function competeStart() {
 }
 
 function competeReset() {
+  // clear rules 
+  competeRulesA = [];
+  competeRulesB = [];
+
+  _competeAllRulesCreatedA = [];
+  _competeAllRulesCreatedB = [];
+  _competeFiringCountsA = {};
+  _competeFiringCountsB = {};
+
   initCompete();
 }
 

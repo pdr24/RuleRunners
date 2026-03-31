@@ -76,6 +76,9 @@ window.addEventListener('load', () => {
   pcwResizeCanvas();
   pcwDrawCanvas();
   window.addEventListener('resize', () => { pcwResizeCanvas(); pcwDrawCanvas(); });
+
+  // ── DATA COLLECTION: start page timer and click counter
+  dcPCW_start();
 });
 
 function pcwResizeCanvas() {
@@ -224,6 +227,27 @@ function pcwSubmit() {
   const ruleCorrect    = pcwSelectedRule === PCW_SCENARIO.correctRule;
   const score          = (sensorCorrect ? 1 : 0) + (ruleCorrect ? 1 : 0);
 
+  // ── DATA COLLECTION: record this attempt
+  dcPCW_recordSubmit({
+    sensorsSelected                 : Array.from(pcwSelectedSensors),
+    ruleSelected                    : pcwSelectedRule,
+    correctSensors                  : PCW_SCENARIO.activeSensors,
+    correctRule                     : PCW_SCENARIO.correctRule,
+    sensorCorrect,
+    ruleCorrect,
+    // Rule is correct given the sensors the student selected (even if sensors were wrong)
+    ruleCorrectGivenSelectedSensors : (() => {
+      // Find the first rule whose condition is in the student's selected sensors
+      const firstMatchIdx = PCW_RULES.findIndex(r =>
+        pcwSelectedSensors.has(r.cond)
+      );
+      return pcwSelectedRule === firstMatchIdx;
+    })(),
+  });
+
+  // ── DATA COLLECTION: start timing the results view
+  dcPCW_recordResultsView();
+
   // Recolour cards in place
   pcwRenderSensors(true);
   pcwRenderRules(true);
@@ -252,6 +276,9 @@ function pcwSubmit() {
 
 // ── RESTART ──────────────────────────────────────
 function pcwRestart() {
+  // ── DATA COLLECTION: stop timing results view, reset for next attempt
+  dcPCW_endResultsView();
+
   pcwSelectedSensors = new Set();
   pcwSelectedRule    = null;
   pcwSubmitted       = false;

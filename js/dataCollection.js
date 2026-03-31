@@ -1,10 +1,9 @@
 /* ═══════════════════════════════════════════════
    dataCollection.js — Rule Runners Data Collection
 
-   All data is stored in sessionStorage under a
-   single key derived from player names + login time.
-   On logout the full session JSON is downloaded and
-   sessionStorage is cleared.
+   All data is stored in sessionStorage under the
+   key "session". On logout the full session JSON
+   is downloaded and sessionStorage is cleared.
 
    SESSION STORAGE STRUCTURE
    ─────────────────────────
@@ -17,7 +16,7 @@
        loginTimestamp: "2025-03-30_14-22-05",
        logoutTimestamp: "...",
        filename: "Alice_A____Bob_B__2025-03-30_14-22-05.json",
-       pageTimings: { "sensorDetection.html": 42, ... }  // seconds
+       pageTimings: { "sensorDetection.html": 4200, ... }  // ms
      },
      practiceCollaborativeWalkthrough: { ... },
      collaborativeWalkthrough: { ... },
@@ -36,9 +35,11 @@ function dcTimestamp(date = new Date()) {
          `_${pad(date.getHours())}-${pad(date.getMinutes())}-${pad(date.getSeconds())}`;
 }
 
-// ── SECONDS SINCE EPOCH ──────────────────────────
+// ── MILLISECONDS SINCE EPOCH ─────────────────────
+// FIX #4: use Date.now() for millisecond precision
+// instead of Math.floor(Date.now()/1000)
 function dcNow() {
-  return Math.floor(Date.now() / 1000);
+  return Date.now();
 }
 
 // ── READ / WRITE SESSION ─────────────────────────
@@ -53,7 +54,6 @@ function dcSaveSession(data) {
 }
 
 function dcSet(path, value) {
-  // path: array of keys, e.g. ['collaborativeWalkthrough', 'steps', 0, 'sensorPlayer']
   const session = dcGetSession();
   let node = session;
   for (let i = 0; i < path.length - 1; i++) {
@@ -76,7 +76,6 @@ function dcGet(path) {
 }
 
 function dcPush(path, value) {
-  // Append to an array at path, creating it if needed
   const session = dcGetSession();
   let node = session;
   for (let i = 0; i < path.length - 1; i++) {
@@ -117,8 +116,7 @@ function dcInitSession() {
 }
 
 // ═══════════════════════════════════════════════
-// PAGE TIMING — call dcPageStart() on load,
-// dcPageEnd() just before navigating away
+// PAGE TIMING
 // ═══════════════════════════════════════════════
 let _pageStartTime = null;
 
@@ -133,18 +131,15 @@ function dcPageEnd() {
   const session = dcGetSession();
   if (!session.meta) return;
   if (!session.meta.pageTimings) session.meta.pageTimings = {};
-  // Accumulate in case the page is visited more than once
   session.meta.pageTimings[page] = (session.meta.pageTimings[page] || 0) + elapsed;
   dcSaveSession(session);
   _pageStartTime = null;
 }
 
-// Auto-save page timing on any navigation away
 window.addEventListener('pagehide', dcPageEnd);
 
 // ═══════════════════════════════════════════════
-// CLICK COUNTING — call dcAttachClickCounter()
-// once per page to track total clicks globally
+// CLICK COUNTING
 // ═══════════════════════════════════════════════
 let _clickCount = 0;
 let _clickCounterAttached = false;
@@ -165,7 +160,7 @@ function dcResetClickCount() {
 }
 
 // ═══════════════════════════════════════════════
-// LOGOUT — set timestamp, download JSON, clear
+// LOGOUT
 // ═══════════════════════════════════════════════
 function dcLogout() {
   dcPageEnd();
@@ -194,14 +189,6 @@ function dcLogout() {
 // LEVEL: PRACTICE COLLABORATIVE WALKTHROUGH
 // ═══════════════════════════════════════════════
 
-/*
-  Call order for practiceCollaborativeWalkthrough:
-    dcPCW_start()                  — on page load
-    dcPCW_recordSubmit(data)       — when Check Answers is clicked
-    dcPCW_recordResultsView()      — when reveal is shown
-    dcPCW_endResultsView()         — when Try Again or Proceed is clicked
-*/
-
 let _pcwAttemptStartTime  = null;
 let _pcwResultsStartTime  = null;
 let _pcwAttemptNumber     = 0;
@@ -212,7 +199,6 @@ function dcPCW_start() {
   _pcwAttemptStartTime = dcNow();
   _pcwAttemptNumber    = 0;
 
-  // Initialise level bucket if not present
   const session = dcGetSession();
   if (!session.practiceCollaborativeWalkthrough) {
     session.practiceCollaborativeWalkthrough = { attempts: [] };
@@ -220,77 +206,62 @@ function dcPCW_start() {
   }
 }
 
-/*
-  data = {
-    sensorsSelected    : ['grounded', 'coin_nearby'],   // keys
-    ruleSelected       : 2,                              // index into PCW_RULES
-    correctSensors     : ['grounded', 'coin_nearby'],
-    correctRule        : 2,
-    sensorCorrect      : true,
-    ruleCorrect        : true,
-    ruleCorrectGivenSelectedSensors : true,
-  }
-*/
 function dcPCW_recordSubmit(data) {
   _pcwAttemptNumber++;
   const timeOnActivity = _pcwAttemptStartTime ? dcNow() - _pcwAttemptStartTime : null;
 
-  // Per-sensor accuracy
-  const ALL_SENSOR_KEYS = ['gap_ahead', 'coin_nearby', 'hazard_nearby', 'near_wall', 'grounded'];
+  // FIX #5: removed 'near_wall' from ALL_SENSOR_KEYS
+  const ALL_SENSOR_KEYS = ['gap_ahead', 'coin_nearby', 'hazard_nearby', 'grounded'];
   const correctSet      = new Set(data.correctSensors);
   const selectedSet     = new Set(data.sensorsSelected);
   const sensorAccuracy  = {};
   ALL_SENSOR_KEYS.forEach(k => {
-    const selected = selectedSet.has(k);
-    const correct  = correctSet.has(k);
-    // true positive or true negative = correct
-    sensorAccuracy[k] = selected === correct;
+    sensorAccuracy[k] = selectedSet.has(k) === correctSet.has(k);
   });
 
-  // Per-rule accuracy (was the correct rule selected?)
-  const ALL_RULE_LABELS = ['jump_gap', 'jump_hazard', 'dash', 'change_dir', 'move_right'];
+  const ALL_RULE_LABELS = ['jump_gap', 'jump_hazard', 'dash', 'move_right'];
   const ruleAccuracy    = {};
   ALL_RULE_LABELS.forEach((label, i) => {
     ruleAccuracy[label] = data.ruleSelected === i ? (data.ruleSelected === data.correctRule) : null;
   });
 
   const attempt = {
-    attemptNumber               : _pcwAttemptNumber,
-    timeOnActivity_seconds      : timeOnActivity,
-    clickCount                  : dcGetClickCount(),
-    sensorsSelected             : data.sensorsSelected,
-    ruleSelected                : data.ruleSelected,
-    correctSensors              : data.correctSensors,
-    correctRule                 : data.correctRule,
-    sensorCorrect               : data.sensorCorrect,
-    ruleCorrect                 : data.ruleCorrect,
+    attemptNumber                   : _pcwAttemptNumber,
+    timeOnActivity_ms               : timeOnActivity,   // FIX #4: renamed _seconds → _ms
+    clickCount                      : dcGetClickCount(),
+    sensorsSelected                 : data.sensorsSelected,
+    ruleSelected                    : data.ruleSelected,
+    correctSensors                  : data.correctSensors,
+    correctRule                     : data.correctRule,
+    sensorCorrect                   : data.sensorCorrect,
+    ruleCorrect                     : data.ruleCorrect,
     ruleCorrectGivenSelectedSensors : data.ruleCorrectGivenSelectedSensors,
-    sensorAccuracyPerType       : sensorAccuracy,
-    ruleAccuracyPerType         : ruleAccuracy,
-    timeOnResultsPage_seconds   : null,  // filled in by dcPCW_endResultsView
+    sensorAccuracyPerType           : sensorAccuracy,
+    ruleAccuracyPerType             : ruleAccuracy,
+    timeOnResultsPage_ms            : null,  // filled in by dcPCW_endResultsView
   };
 
   dcPush(['practiceCollaborativeWalkthrough', 'attempts'], attempt);
   dcResetClickCount();
 
-  // Start timing results page
+  // FIX #8 (redundancy): only start results timer here; removed dcPCW_recordResultsView()
   _pcwResultsStartTime = dcNow();
 }
 
+// FIX #8: kept for API compatibility but no longer called from pcwSubmit
 function dcPCW_recordResultsView() {
   _pcwResultsStartTime = dcNow();
 }
 
 function dcPCW_endResultsView() {
   if (_pcwResultsStartTime === null) return;
-  const elapsed   = dcNow() - _pcwResultsStartTime;
-  const session   = dcGetSession();
-  const attempts  = session.practiceCollaborativeWalkthrough?.attempts;
+  const elapsed  = dcNow() - _pcwResultsStartTime;
+  const session  = dcGetSession();
+  const attempts = session.practiceCollaborativeWalkthrough?.attempts;
   if (attempts && attempts.length > 0) {
-    attempts[attempts.length - 1].timeOnResultsPage_seconds = elapsed;
+    attempts[attempts.length - 1].timeOnResultsPage_ms = elapsed;
     dcSaveSession(session);
   }
-  // Reset for next attempt
   _pcwAttemptStartTime = dcNow();
   _pcwResultsStartTime = null;
 }
@@ -298,15 +269,6 @@ function dcPCW_endResultsView() {
 // ═══════════════════════════════════════════════
 // LEVEL: COLLABORATIVE WALKTHROUGH
 // ═══════════════════════════════════════════════
-
-/*
-  Call order per scenario:
-    dcCW_startScenario(scenarioIdx, sensorPlayerIdx)
-    dcCW_sensorPlayerDone(sensorsSelected)
-    dcCW_rulePlayerDone(ruleSelected)
-    dcCW_recordReveal(correctSensors, correctRule, sensorCorrect, ruleCorrect, roundScore)
-    dcCW_endResultsView()
-*/
 
 let _cwScenarioStartTime    = null;
 let _cwSensorStartTime      = null;
@@ -318,7 +280,7 @@ let _cwSensorsSelected      = null;
 let _cwRuleSelected         = null;
 let _cwSensorClicks         = 0;
 let _cwRuleClicks           = 0;
-let _cwPhaseClicksTracked   = null;  // 'sensor' | 'rule'
+let _cwPhaseClicksTracked   = null;
 
 function dcCW_start() {
   dcPageStart();
@@ -345,19 +307,17 @@ function dcCW_startScenario(scenarioIdx, sensorPlayerIdx) {
   dcResetClickCount();
 }
 
-// Call when sensor phase begins (after overlay dismissed)
 function dcCW_beginSensorPhase() {
-  _cwSensorStartTime      = dcNow();
-  _cwPhaseClicksTracked   = 'sensor';
-  _cwSensorClicks         = 0;
+  _cwSensorStartTime    = dcNow();
+  _cwPhaseClicksTracked = 'sensor';
+  _cwSensorClicks       = 0;
   dcResetClickCount();
 }
 
-// Call when rule phase begins (after overlay dismissed)
 function dcCW_beginRulePhase() {
-  _cwSensorClicks         = dcGetClickCount();
-  _cwRuleStartTime        = dcNow();
-  _cwPhaseClicksTracked   = 'rule';
+  _cwSensorClicks       = dcGetClickCount();
+  _cwRuleStartTime      = dcNow();
+  _cwPhaseClicksTracked = 'rule';
   dcResetClickCount();
 }
 
@@ -366,23 +326,16 @@ function dcCW_sensorPlayerDone(sensorsSelected) {
 }
 
 function dcCW_rulePlayerDone(ruleSelected) {
-  _cwRuleSelected    = ruleSelected;
-  _cwRuleClicks      = dcGetClickCount();
+  _cwRuleSelected = ruleSelected;
+  _cwRuleClicks   = dcGetClickCount();
 }
 
-/*
-  Call this when the reveal screen is shown.
-  data = {
-    correctSensors, correctRule,
-    sensorCorrect, ruleCorrect, roundScore,
-    ruleCorrectGivenSelectedSensors
-  }
-*/
 function dcCW_recordReveal(data) {
   _cwResultsStartTime = dcNow();
 
-  const ALL_SENSOR_KEYS = ['gap_ahead', 'coin_nearby', 'hazard_nearby', 'near_wall', 'grounded'];
-  const ALL_RULE_LABELS = ['jump_gap', 'jump_hazard', 'dash', 'change_dir', 'move_right'];
+  // FIX #5: removed 'near_wall' from ALL_SENSOR_KEYS
+  const ALL_SENSOR_KEYS = ['gap_ahead', 'coin_nearby', 'hazard_nearby', 'grounded'];
+  const ALL_RULE_LABELS = ['jump_gap', 'jump_hazard', 'dash', 'move_right'];
 
   const correctSet  = new Set(data.correctSensors);
   const selectedSet = new Set(_cwSensorsSelected || []);
@@ -418,15 +371,14 @@ function dcCW_recordReveal(data) {
     ruleAccuracyPerType             : ruleAccuracy,
     clicksBySensorPlayer            : _cwSensorClicks,
     clicksByRulePlayer              : _cwRuleClicks,
-    timeOnSensorPhase_seconds       : sensorTime,
-    timeOnRulePhase_seconds         : ruleTime,
-    timeOnResultsPage_seconds       : null,  // filled in by dcCW_endResultsView
-    totalTimeOnStep_seconds         : null,  // filled in by dcCW_endResultsView
+    timeOnSensorPhase_ms            : sensorTime,   // FIX #4
+    timeOnRulePhase_ms              : ruleTime,     // FIX #4
+    timeOnResultsPage_ms            : null,         // filled in by dcCW_endResultsView
+    totalTimeOnStep_ms              : null,         // filled in by dcCW_endResultsView
   };
 
   dcPush(['collaborativeWalkthrough', 'steps'], step);
 
-  // Update running total score
   const session = dcGetSession();
   if (session.collaborativeWalkthrough) {
     session.collaborativeWalkthrough.totalScore =
@@ -443,8 +395,8 @@ function dcCW_endResultsView() {
   const session = dcGetSession();
   const steps   = session.collaborativeWalkthrough?.steps;
   if (steps && steps.length > 0) {
-    steps[steps.length - 1].timeOnResultsPage_seconds = resultsTime;
-    steps[steps.length - 1].totalTimeOnStep_seconds   = totalTime;
+    steps[steps.length - 1].timeOnResultsPage_ms = resultsTime;   // FIX #4
+    steps[steps.length - 1].totalTimeOnStep_ms   = totalTime;     // FIX #4
     dcSaveSession(session);
   }
   _cwResultsStartTime = null;
@@ -454,18 +406,6 @@ function dcCW_endResultsView() {
 // LEVEL: BUILD YOUR AGENT
 // ═══════════════════════════════════════════════
 
-/*
-  Call order per run:
-    dcBuild_start()                  — on page load
-    dcBuild_startRuleEditing()       — when user starts editing rules
-    dcBuild_stopRuleEditing()        — when run button clicked (stop edit timer)
-    dcBuild_recordRun(data)          — when run completes
-    dcBuild_recordRuleReorder()      — each time a rule is dragged
-    dcBuild_recordRuleCreated()      — each time a new rule is added
-    dcBuild_recordResetClicked()     — each time reset is clicked
-    dcBuild_recordRunButtonClicked() — each time run/step is clicked
-*/
-
 let _buildPageStart          = null;
 let _buildRuleEditStart      = null;
 let _buildTotalRuleEditTime  = 0;
@@ -473,6 +413,7 @@ let _buildAnimStart          = null;
 let _buildRunCount           = 0;
 let _buildResetCount         = 0;
 let _buildRunButtonCount     = 0;
+let _buildStepCount          = 0;   // FIX #3: new step-click counter
 let _buildReorderCount       = 0;
 let _buildRulesCreatedCount  = 0;
 
@@ -486,8 +427,12 @@ function dcBuild_start() {
   _buildRunCount          = 0;
   _buildResetCount        = 0;
   _buildRunButtonCount    = 0;
+  _buildStepCount         = 0;
   _buildReorderCount      = 0;
   _buildRulesCreatedCount = 0;
+
+  // FIX #1a: start editing timer immediately on page load
+  dcBuild_startRuleEditing();
 
   const session = dcGetSession();
   if (!session.buildAgent) {
@@ -513,6 +458,11 @@ function dcBuild_recordRunButtonClicked() {
   _buildAnimStart = dcNow();
 }
 
+// FIX #3: new function for step-click tracking
+function dcBuild_recordStepClicked() {
+  _buildStepCount++;
+}
+
 function dcBuild_recordResetClicked() {
   _buildResetCount++;
 }
@@ -525,14 +475,6 @@ function dcBuild_recordRuleCreated() {
   _buildRulesCreatedCount++;
 }
 
-/*
-  data = {
-    finalRules      : [ { cond, action }, ... ],
-    coinsCollected  : 3,
-    distanceTraveled: 480,
-    ruleFiringCounts: { 0: 5, 1: 2, ... }  // rule index → count
-  }
-*/
 function dcBuild_recordRun(data) {
   _buildRunCount++;
   const animTime = (_buildAnimStart) ? dcNow() - _buildAnimStart : null;
@@ -543,35 +485,35 @@ function dcBuild_recordRun(data) {
     coinsCollected          : data.coinsCollected,
     distanceTraveled        : data.distanceTraveled,
     ruleFiringCounts        : data.ruleFiringCounts,
-    timeSpentEditingRules_seconds : _buildTotalRuleEditTime,
-    timeWatchingAnimation_seconds : animTime,
-    totalRulesCreated       : _buildRulesCreatedCount,
-    ruleReorderCount        : _buildReorderCount,
-    resetClickCount         : _buildResetCount,
-    runButtonClickCount     : _buildRunButtonCount,
-    clickCount              : dcGetClickCount(),
+    timeSpentEditingRules_ms : _buildTotalRuleEditTime,   // FIX #4
+    timeWatchingAnimation_ms : animTime,                  // FIX #4
+    totalRulesCreated        : _buildRulesCreatedCount,
+    ruleReorderCount         : _buildReorderCount,
+    resetClickCount          : _buildResetCount,
+    runButtonClickCount      : _buildRunButtonCount,
+    stepClickCount           : _buildStepCount,           // FIX #3
+    clickCount               : dcGetClickCount(),
   };
 
   dcPush(['buildAgent', 'runs'], run);
   dcResetClickCount();
+
+  // FIX #2: reset all per-run counters after saving so run N+1 starts fresh
   _buildTotalRuleEditTime = 0;
   _buildAnimStart         = null;
+  _buildRulesCreatedCount = 0;
+  _buildReorderCount      = 0;
+  _buildResetCount        = 0;
+  _buildRunButtonCount    = 0;
+  _buildStepCount         = 0;
+
+  // Restart editing timer for the next run
+  dcBuild_startRuleEditing();
 }
 
 // ═══════════════════════════════════════════════
 // LEVEL: COMPETE
 // ═══════════════════════════════════════════════
-
-/*
-  Call order:
-    dcCompete_start()
-    dcCompete_startRuleEditing(playerIdx)   — 1 or 2
-    dcCompete_stopRuleEditing(playerIdx)
-    dcCompete_recordRuleReorder(playerIdx)
-    dcCompete_recordRuleCreated(playerIdx)
-    dcCompete_startAnimation()
-    dcCompete_recordResult(data)
-*/
 
 let _competeP1EditStart   = null;
 let _competeP2EditStart   = null;
@@ -580,8 +522,7 @@ let _competeP2EditTime    = 0;
 let _competeAnimStart     = null;
 let _competeP1Reorders    = 0;
 let _competeP2Reorders    = 0;
-let _competeP1Created     = 0;
-let _competeP2Created     = 0;
+// FIX #6: removed dead _competeP1Created / _competeP2Created counters
 let _competeGameCount     = 0;
 
 function dcCompete_start() {
@@ -591,8 +532,6 @@ function dcCompete_start() {
   _competeP2EditTime  = 0;
   _competeP1Reorders  = 0;
   _competeP2Reorders  = 0;
-  _competeP1Created   = 0;
-  _competeP2Created   = 0;
   _competeGameCount   = 0;
 
   const session = dcGetSession();
@@ -623,9 +562,9 @@ function dcCompete_recordRuleReorder(playerIdx) {
   if (playerIdx === 2) _competeP2Reorders++;
 }
 
+// FIX #6: kept for API compatibility but no longer increments dead counters
 function dcCompete_recordRuleCreated(playerIdx) {
-  if (playerIdx === 1) _competeP1Created++;
-  if (playerIdx === 2) _competeP2Created++;
+  // counts are captured via allRulesCreated array length in compete.js
 }
 
 function dcCompete_startAnimation() {
@@ -634,42 +573,36 @@ function dcCompete_startAnimation() {
   _competeAnimStart = dcNow();
 }
 
-/*
-  data = {
-    p1FinalRules, p1AllRulesCreated, p1Score,
-    p1CoinsCollected, p1DistanceMax, p1RuleFiringCounts,
-    p2FinalRules, p2AllRulesCreated, p2Score,
-    p2CoinsCollected, p2DistanceMax, p2RuleFiringCounts,
-  }
-*/
 function dcCompete_recordResult(data) {
   _competeGameCount++;
   const animTime = _competeAnimStart ? dcNow() - _competeAnimStart : null;
 
   const game = {
-    gameNumber                      : _competeGameCount,
+    gameNumber                       : _competeGameCount,
     player1: {
-      finalRules                    : data.p1FinalRules,
-      allRulesCreated               : data.p1AllRulesCreated,
-      ruleReorderCount              : _competeP1Reorders,
-      score                         : data.p1Score,
-      coinsCollected                : data.p1CoinsCollected,
-      distanceMax                   : data.p1DistanceMax,
-      ruleFiringCounts              : data.p1RuleFiringCounts,
-      timeEditingRules_seconds      : _competeP1EditTime,
+      finalRules                     : data.p1FinalRules,
+      allRulesCreated                : data.p1AllRulesCreated,
+      rulesCreatedCount              : data.p1AllRulesCreated?.length ?? 0,
+      ruleReorderCount               : _competeP1Reorders,
+      score                          : data.p1Score,
+      coinsCollected                 : data.p1CoinsCollected,
+      distanceMax                    : data.p1DistanceMax,
+      ruleFiringCounts               : data.p1RuleFiringCounts,
+      timeEditingRules_ms            : _competeP1EditTime,   // FIX #4
     },
     player2: {
-      finalRules                    : data.p2FinalRules,
-      allRulesCreated               : data.p2AllRulesCreated,
-      ruleReorderCount              : _competeP2Reorders,
-      score                         : data.p2Score,
-      coinsCollected                : data.p2CoinsCollected,
-      distanceMax                   : data.p2DistanceMax,
-      ruleFiringCounts              : data.p2RuleFiringCounts,
-      timeEditingRules_seconds      : _competeP2EditTime,
+      finalRules                     : data.p2FinalRules,
+      allRulesCreated                : data.p2AllRulesCreated,
+      rulesCreatedCount              : data.p2AllRulesCreated?.length ?? 0,
+      ruleReorderCount               : _competeP2Reorders,
+      score                          : data.p2Score,
+      coinsCollected                 : data.p2CoinsCollected,
+      distanceMax                    : data.p2DistanceMax,
+      ruleFiringCounts               : data.p2RuleFiringCounts,
+      timeEditingRules_ms            : _competeP2EditTime,   // FIX #4
     },
-    timeWatchingAnimation_seconds   : animTime,
-    clickCount                      : dcGetClickCount(),
+    timeWatchingAnimation_ms         : animTime,             // FIX #4
+    clickCount                       : dcGetClickCount(),
   };
 
   dcPush(['compete', 'games'], game);
@@ -685,14 +618,6 @@ function dcCompete_recordResult(data) {
 // LEVEL: STORY
 // ═══════════════════════════════════════════════
 
-/*
-  Call order:
-    dcStory_start()
-    dcStory_startTyping() / dcStory_stopTyping()   — when text area focused/blurred
-    dcStory_startDrawing() / dcStory_stopDrawing() — when drawing canvas active
-    dcStory_recordSubmit(data)
-*/
-
 let _storyTypingStart   = null;
 let _storyTypingTime    = 0;
 let _storyDrawingStart  = null;
@@ -701,9 +626,9 @@ let _storyDrawingTime   = 0;
 function dcStory_start() {
   dcPageStart();
   dcAttachClickCounter();
-  _storyTypingTime  = 0;
-  _storyDrawingTime = 0;
-  _storyTypingStart = null;
+  _storyTypingTime   = 0;
+  _storyDrawingTime  = 0;
+  _storyTypingStart  = null;
   _storyDrawingStart = null;
 
   const session = dcGetSession();
@@ -735,28 +660,21 @@ function dcStory_stopDrawing() {
   }
 }
 
-/*
-  data = {
-    scenarioText : "...",
-    drawingDataUrl : "data:image/png;base64,..."  // canvas.toDataURL()
-  }
-*/
 function dcStory_recordSubmit(data) {
   dcStory_stopTyping();
   dcStory_stopDrawing();
 
   dcSet(['story'], {
-    scenarioText              : data.scenarioText || '',
-    drawingImage              : data.drawingDataUrl || null,
-    timeTyping_seconds        : _storyTypingTime,
-    timeDrawing_seconds       : _storyDrawingTime,
-    clickCount                : dcGetClickCount(),
+    scenarioText       : data.scenarioText || '',
+    drawingImage       : data.drawingDataUrl || null,
+    timeTyping_ms      : _storyTypingTime,    // FIX #4
+    timeDrawing_ms     : _storyDrawingTime,   // FIX #4
+    clickCount         : dcGetClickCount(),
   });
 }
 
 // ═══════════════════════════════════════════════
-// EXPORTS — attach to window so all pages can call
-// these functions without ES module imports
+// EXPORTS
 // ═══════════════════════════════════════════════
 Object.assign(window, {
   // Core
@@ -789,6 +707,7 @@ Object.assign(window, {
   dcBuild_startRuleEditing,
   dcBuild_stopRuleEditing,
   dcBuild_recordRunButtonClicked,
+  dcBuild_recordStepClicked,       // FIX #3
   dcBuild_recordResetClicked,
   dcBuild_recordRuleReorder,
   dcBuild_recordRuleCreated,

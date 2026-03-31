@@ -18,12 +18,10 @@ const BUILD_PROCEED_REQUIRED_MS = 5000;
 // ── DATA COLLECTION: per-run firing counts ───────
 let _buildRuleFiringCounts = {};
 
-// ── INIT ─────────────────────────────────────────
-
+// ── PROCEED BUTTON ───────────────────────────────
 function updateBuildProceedButton() {
   const btn = document.getElementById('build-proceed-btn');
   if (!btn) return;
-
   if (buildProceedUnlocked) {
     btn.style.display = '';
     btn.disabled = false;
@@ -33,7 +31,10 @@ function updateBuildProceedButton() {
   }
 }
 
+// ── INIT ─────────────────────────────────────────
 window.addEventListener('load', () => {
+  buildRunTimeMs       = 0;
+  buildProceedUnlocked = false;
   initBuild();
   window.addEventListener('resize', resizeBuildCanvas);
 
@@ -42,6 +43,9 @@ window.addEventListener('load', () => {
 });
 
 function initBuild() {
+  // Resets agent/level state but deliberately does NOT touch
+  // buildRunTimeMs or buildProceedUnlocked — those persist across
+  // agent resets so accumulated run time is not lost on each reset.
   buildLevel = createLevel();
   buildAgent = createAgent(20);
   buildCamX  = 0;
@@ -57,31 +61,24 @@ function initBuild() {
   document.getElementById('build-active-rule-stat').textContent = '—';
   document.getElementById('build-firing-text').textContent = 'none';
   buildSetEditorLocked(false);
-
-  buildRunTimeMs = 0;
-  buildProceedUnlocked = false;
   updateBuildProceedButton();
 }
 
 // ── LOCK / UNLOCK RULE EDITOR ─────────────────────
 // Disables all rule editing controls while the agent is running.
 function buildSetEditorLocked(locked) {
-  // Add/remove rule UI
   document.getElementById('build-cond-select').disabled   = locked;
   document.getElementById('build-action-select').disabled = locked;
 
-  // The Add Rule button — find it by its onclick attribute text
   const addBtn = document.querySelector('[onclick="buildAddRule()"]');
   if (addBtn) addBtn.disabled = locked;
 
-  // All delete buttons and drag handles on existing rule cards
   document.querySelectorAll('.rule-delete').forEach(btn => btn.disabled = locked);
   document.querySelectorAll('.rule-card').forEach(card => {
     card.draggable = !locked;
     card.style.cursor = locked ? 'default' : 'grab';
   });
 
-  // Visual dimming of the add-rule section
   const addSection = document.querySelector('.add-rule-section');
   if (addSection) addSection.style.opacity = locked ? '0.4' : '1';
 }
@@ -97,7 +94,7 @@ function resizeBuildCanvas() {
 
 // ── RULE MANAGEMENT ──────────────────────────────
 function buildAddRule() {
-  if (buildRunning) return;  // guard: no edits while running
+  if (buildRunning) return;
   const cond   = document.getElementById('build-cond-select').value;
   const action = document.getElementById('build-action-select').value;
   if (!cond || !action) { showToast('⚠ Select both a condition and an action!'); return; }
@@ -112,12 +109,11 @@ function buildAddRule() {
 }
 
 function buildDeleteRule(i) {
-  if (buildRunning) return;  // guard: no edits while running
+  if (buildRunning) return;
   buildRules.splice(i, 1);
   renderBuildRules();
 }
 
-// Drag context accessor for shared engine dragDrop helper
 function _getBuildArr() { return buildRules; }
 function _onBuildRender() {
   renderBuildRules();
@@ -151,7 +147,7 @@ function renderBuildRules() {
 }
 
 function _onBuildDrop(e, targetIdx) {
-  if (buildRunning) return;  // guard: no reorder while running
+  if (buildRunning) return;
   dragDrop(e, targetIdx, 'build', _getBuildArr, _onBuildRender);
 }
 
@@ -162,14 +158,12 @@ function buildRun() {
   document.getElementById('build-run-btn').textContent = buildRunning ? '⏸ PAUSE' : '▶ RUN';
   document.getElementById('build-status').textContent  = buildRunning ? 'RUNNING'  : 'PAUSED';
 
-  // Lock or unlock the editor whenever run state changes
   buildSetEditorLocked(buildRunning);
 
   if (buildRunning) {
     // ── DATA COLLECTION: run button clicked — stop editing timer, start anim timer
     dcBuild_recordRunButtonClicked();
 
-    // Reset per-run firing counts
     _buildRuleFiringCounts = {};
 
     buildLastTime = performance.now();
@@ -182,12 +176,13 @@ function buildRun() {
 
 function buildStep() {
   if (buildRules.length === 0) { showToast('⚠ Add at least one rule first!'); return; }
+  dcBuild_recordStepClicked(); // ── DATA COLLECTION: track step clicks
   _simStep();
   drawBuildFrame();
 }
 
 function buildReset() {
-  // ── DATA COLLECTION: record run data before resetting, if a run was active
+  // ── DATA COLLECTION: record run data before resetting
   if (buildRunning || buildAgent) {
     dcBuild_recordRun({
       finalRules      : buildRules.map(r => ({ cond: r.cond, action: r.action })),
@@ -216,7 +211,9 @@ function buildLoop(now) {
   const dt = now - buildLastTime;
   buildLastTime = now;
 
-  // Track total running time toward unlock
+  // Accumulate running time toward the proceed-button unlock.
+  // buildRunTimeMs persists across agent resets (initBuild) so
+  // students don't lose progress — it only resets via buildReset.
   if (!buildProceedUnlocked) {
     buildRunTimeMs += dt;
     if (buildRunTimeMs >= BUILD_PROCEED_REQUIRED_MS) {
@@ -246,7 +243,6 @@ function _simStep() {
 
   buildCamX = Math.max(0, ag.x - 250);
 
-  // HUD update
   document.getElementById('build-coins').textContent = ag.coins;
   document.getElementById('build-dist').textContent  = Math.round(ag.distMax / 10) + 'm';
 
@@ -289,7 +285,7 @@ function drawBuildFrame() {
 
 // ── PROCEED TO COMPETE ───────────────────────────
 function proceedToCompete() {
-  // ── DATA COLLECTION: save final run state before leaving if agent is active
+  // ── DATA COLLECTION: save final run state before leaving
   if (buildAgent) {
     dcBuild_recordRun({
       finalRules      : buildRules.map(r => ({ cond: r.cond, action: r.action })),

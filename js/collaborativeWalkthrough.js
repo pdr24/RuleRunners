@@ -80,7 +80,7 @@ const CW_SCENARIOS = [
   {
     context: 'The agent is mid-jump over the gap. Nothing is close enough to detect.',
     camX: 0,
-    agent: cwSnap(205, 235, 1, {}, false),
+    agent: cwSnap(190, 220, 1, {}, false),
     activeSensors: [],
     correctRule: -1,
     explanation: 'The agent is airborne with no sensors active. None of the five rules have a matching condition — no rule fires this frame.',
@@ -96,26 +96,26 @@ const CW_SCENARIOS = [
   {
     context: 'A coin AND a patrolling enemy are both within sensor range. Which rule wins?',
     camX: 200,
-    agent: cwSnap(535, 272, 1, { grounded: true, coin_nearby: true, hazard_nearby: true }, true),
-    activeSensors: ['grounded', 'coin_nearby', 'hazard_nearby'],
+    agent: cwSnap(535, 272, 1, { grounded: true, hazard_nearby: true }, true),
+    activeSensors: ['grounded', 'hazard_nearby'],
     correctRule: 1,
-    explanation: 'Both coin_nearby and hazard_nearby are active. Rules are checked top-to-bottom: hazard_nearby (Rule 2) comes before coin_nearby (Rule 3), so Rule 2 fires: JUMP.',
+    explanation: 'Both grounded and hazard_nearby are active. Rules are checked top-to-bottom: hazard_nearby (Rule 2) comes before grounded (Rule 5), so Rule 2 fires: JUMP.',
   },
   {
-    context: 'The agent has run into the right edge of a platform — a wall blocks the path.',
+    context: 'The agent has a gap and hazard nearby. What\'s close enough to be a threat?',
     camX: 200,
-    agent: cwSnap(636, 272, 1, { grounded: true, near_wall: true }, true),
-    activeSensors: ['grounded', 'near_wall'],
-    correctRule: 3,
-    explanation: 'Grounded and near_wall are active. No gap, hazard, or coin. Rule 4 — near_wall → CHANGE DIRECTION — fires.',
+    agent: cwSnap(636, 272, 1, { grounded: true, gap_ahead: true , hazard_nearby: true}, true),
+    activeSensors: ['grounded', 'gap_ahead', 'hazard_nearby'],
+    correctRule: 0,
+    explanation: 'Grounded gap_ahead, and hazard_nearby are active. Rule 1 — gap_ahead → JUMP — is the highest-priority match and fires first.',
   },
   {
     context: 'The platform edge is close and a coin floats just beyond. What fires?',
     camX: 100,
-    agent: cwSnap(450, 252, 1, { grounded: true, gap_ahead: true, coin_nearby: true }, true),
-    activeSensors: ['grounded', 'gap_ahead', 'coin_nearby'],
+    agent: cwSnap(450, 252, 1, { grounded: true, gap_ahead: true}, true),
+    activeSensors: ['grounded', 'gap_ahead'],
     correctRule: 0,
-    explanation: 'Three sensors active: grounded, gap_ahead, coin_nearby. Rule 1 — gap_ahead → JUMP — is the highest-priority match and fires first.',
+    explanation: 'Two sensors active: grounded and gap_ahead. Rule 1 — gap_ahead → JUMP — is the highest-priority match and fires first.',
   },
 ];
 
@@ -274,22 +274,42 @@ function cwSetOverlay(color, topText, bottomText) {
 // ── CANVAS DRAWING ───────────────────────────────
 function cwDrawSensorCanvas() {
   const canvas = document.getElementById('cw-canvas-sensor');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const sc = CW_SCENARIOS[cwScenarioIdx];
-  drawLevel(ctx, canvas.width, canvas.height, cwLevel, sc.agent, sc.camX, 'green');
-  cwDrawRing(ctx, sc.agent, sc.camX);
+  if (!canvas || !canvas.parentElement) return;
+  // Size the canvas to its container first so camX is computed correctly
+  const w = canvas.parentElement.clientWidth;
+  const h = canvas.parentElement.clientHeight;
+  if (w === 0 || h === 0) {
+    // Container not yet laid out — retry next frame
+    requestAnimationFrame(cwDrawSensorCanvas);
+    return;
+  }
+  canvas.width  = w;
+  canvas.height = h;
+  const ctx  = canvas.getContext('2d');
+  const sc   = CW_SCENARIOS[cwScenarioIdx];
+  const camX = Math.max(0, sc.agent.x + sc.agent.w / 2 - canvas.width / 2);
+  drawLevel(ctx, canvas.width, canvas.height, cwLevel, sc.agent, camX, 'green');
+  cwDrawRing(ctx, sc.agent, camX);
 }
 
 function cwDrawRevealCanvas() {
   const canvas = document.getElementById('cw-canvas-reveal');
-  if (!canvas) return;
-  canvas.width = canvas.parentElement.clientWidth || 400;
-  canvas.height = canvas.parentElement.clientHeight || 300;
-  const ctx = canvas.getContext('2d');
-  const sc = CW_SCENARIOS[cwScenarioIdx];
-  drawLevel(ctx, canvas.width, canvas.height, cwLevel, sc.agent, sc.camX, 'green');
-  cwDrawRing(ctx, sc.agent, sc.camX);
+  if (!canvas || !canvas.parentElement) return;
+  // Size the canvas to its container first so camX is computed correctly
+  const w = canvas.parentElement.clientWidth;
+  const h = canvas.parentElement.clientHeight;
+  if (w === 0 || h === 0) {
+    // Container not yet laid out — retry next frame
+    requestAnimationFrame(cwDrawRevealCanvas);
+    return;
+  }
+  canvas.width  = w;
+  canvas.height = h;
+  const ctx  = canvas.getContext('2d');
+  const sc   = CW_SCENARIOS[cwScenarioIdx];
+  const camX = Math.max(0, sc.agent.x + sc.agent.w / 2 - canvas.width / 2);
+  drawLevel(ctx, canvas.width, canvas.height, cwLevel, sc.agent, camX, 'green');
+  cwDrawRing(ctx, sc.agent, camX);
 }
 
 function cwDrawRing(ctx, agent, camX) {
@@ -554,7 +574,6 @@ function cwNextScenario() {
   dcCW_endResultsView();
 
   cwScenarioIdx++;
-  cwLevel = createLevel();
   cwSensorPlayerIdx = cwSensorPlayerIdx === 0 ? 1 : 0;
 
   // ── DATA COLLECTION: start tracking the new scenario

@@ -82,7 +82,7 @@ const PHASES = [
     let dot;
     if (isDone) {
       dot             = document.createElement('a');
-      dot.href        = phase.href;
+      // dot.href        = phase.href;
       dot.className   = 'phase-dot done clickable';
       dot.textContent = '✓';
     } else if (isActive) {

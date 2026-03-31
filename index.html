@@ -231,14 +231,17 @@
     </div>
   </main>
 
-    <script src="js/nav.js"></script>
+  <script src="js/dataCollection.js"></script>
+  <script src="js/nav.js"></script>
   <script>
     // Redirect to login if session data is missing
     if (!sessionStorage.getItem('players')) {
       window.location.replace('login.html');
     }
-  </script>
 
+    // Start timing how long students spend on the home page
+    dcPageStart();
+  </script>
 
 </body>
 </html>

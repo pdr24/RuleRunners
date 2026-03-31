@@ -93,7 +93,11 @@ function demoTick() {
     demoAnimId = requestAnimationFrame(demoTick);
 }
 
-window.addEventListener('load', startDemoLoop);
+window.addEventListener('load', () => {
+    startDemoLoop();
+    dcPageStart(); // ── DATA COLLECTION: start timing this page
+});
+
 window.addEventListener('resize', () => {
     const canvas = document.getElementById('demo-canvas');
     canvas.width  = canvas.offsetWidth  || 800;

@@ -133,8 +133,12 @@
       gap: 8px;
       align-items: center;
     }
-    .score-chip.chip-a { border-color: rgba(0,245,255,0.3); }
-    .score-chip.chip-b { border-color: rgba(255,107,53,0.3); }
+    .score-chip.chip-a { 
+      border-color: rgba(0,245,255,0.3); 
+    }
+    .score-chip.chip-b { 
+      border-color: rgba(255,107,53,0.3); 
+    }
     .chip-label { color: var(--text-dim); font-size: 0.62rem; }
     .chip-val-a { color: var(--accent-cyan); font-size: 0.88rem; }
     .chip-val-b { color: var(--accent-orange); font-size: 0.88rem; }
@@ -171,6 +175,7 @@
 
     .compete-controls {
       display: flex;
+      align-self: center;
       gap: 10px;
       align-items: center;
       flex-shrink: 0;
@@ -195,11 +200,11 @@
       <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:12px;" id="result-subtitle"></div>
       <div class="result-scores">
         <div class="result-score-col">
-          <div class="rs-label">α ALPHA</div>
+          <div class="rs-label">α PLAYER 1</div>
           <div class="rs-val rs-val-a" id="result-score-a">0</div>
         </div>
         <div class="result-score-col">
-          <div class="rs-label">β BETA</div>
+          <div class="rs-label">β PLAYER 2</div>
           <div class="rs-val rs-val-b" id="result-score-b">0</div>
         </div>
       </div>
@@ -209,7 +214,6 @@
       </div>
       <div class="result-btns">
         <button class="btn btn-secondary btn-sm" onclick="competeReset(); closeResult()">↺ Play Again</button>
-        <button class="btn btn-secondary btn-sm" onclick="window.location.href='buildAgent.html'">◀ Edit Rules</button>
         <a class="btn btn-primary" href="story.html">Continue ▶</a>
       </div>
     </div>
@@ -224,8 +228,8 @@
     <div class="compete-top">
 
       <!-- Agent Alpha (A) -->
-      <div class="agent-setup">
-        <div class="agent-label agent-a-label">◈ AGENT ALPHA — Player 1</div>
+      <div class="agent-setup" >
+        <div class="agent-label agent-a-label">◈ PLAYER 1</div>
         <div class="mini-rule-list" id="compete-a-list"></div>
         <div class="mini-add-row">
           <span class="mini-kw">IF</span>
@@ -252,7 +256,7 @@
 
       <!-- Agent Beta (B) -->
       <div class="agent-setup">
-        <div class="agent-label agent-b-label">◈ AGENT BETA — Player 2</div>
+        <div class="agent-label agent-b-label">◈ Player 2</div>
         <div class="mini-rule-list" id="compete-b-list"></div>
         <div class="mini-add-row">
           <span class="mini-kw">IF</span>
@@ -281,15 +285,15 @@
     <!-- ── BOTTOM: Competition arena ── -->
     <div class="compete-arena">
       <div class="arena-header">
-        <span class="arena-title">🏟 Competition Arena</span>
-        <div class="timer-display" id="compete-timer">90</div>
-        <div class="scoreboard">
-          <div class="score-chip chip-a">
-            <span class="chip-label">α SCORE</span>
+        <div class="score-chip chip-a">
+            <span class="chip-label">P1 SCORE</span>
             <span class="chip-val-a" id="score-a">0</span>
           </div>
+        <div class="timer-display" id="compete-timer">90</div>
+        <div class="scoreboard">
+          
           <div class="score-chip chip-b">
-            <span class="chip-label">β SCORE</span>
+            <span class="chip-label">P2 SCORE</span>
             <span class="chip-val-b" id="score-b">0</span>
           </div>
         </div>
@@ -297,18 +301,17 @@
 
       <div class="arena-canvases">
         <div class="arena-canvas-wrap">
-          <div class="arena-canvas-label label-a">◈ ALPHA</div>
+          <div class="arena-canvas-label label-a">◈ Player 1's Agent</div>
           <canvas class="arena-canvas" id="compete-canvas-a"></canvas>
         </div>
         <div class="arena-canvas-wrap">
-          <div class="arena-canvas-label label-b">◈ BETA</div>
+          <div class="arena-canvas-label label-b">◈ Player 2's Agent</div>
           <canvas class="arena-canvas" id="compete-canvas-b"></canvas>
         </div>
       </div>
 
       <div class="compete-controls">
         <button class="btn btn-green" id="compete-start-btn" onclick="competeStart()">▶ START COMPETITION</button>
-        <button class="btn btn-secondary" onclick="competeReset()">↺ RESET</button>
       </div>
     </div>
 

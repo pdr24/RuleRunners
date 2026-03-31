@@ -70,7 +70,7 @@ function competeAddRule(ag) {
   document.getElementById(ag + '-cond').value   = '';
   document.getElementById(ag + '-action').value = '';
   renderCompeteRules();
-  showToast(`✓ Rule added to Agent ${ag === 'a' ? 'Alpha' : 'Beta'}!`);
+  showToast(`✓ Rule added to Agent ${ag === 'a' ? 'Player 1' : 'Player 2'}!`);
 }
 
 function competeDeleteRule(ag, i) {
@@ -115,8 +115,8 @@ function renderCompeteRules() {
 // ── COMPETITION CONTROLS ─────────────────────────
 function competeStart() {
   if (competeRunning) return;
-  if (competeRulesA.length === 0 && competeRulesB.length === 0) {
-    showToast('⚠ Add rules to at least one agent!');
+  if (competeRulesA.length === 0 || competeRulesB.length === 0) {
+    showToast('⚠ Add at least 1 rule to both agents!');
     return;
   }
   competeRunning = true;
@@ -213,13 +213,13 @@ function endCompetition() {
   let winnerName, winnerClass, subtitle, reflection;
 
   if (sa > sb) {
-    winnerName = 'ALPHA WINS'; winnerClass = 'win-a';
-    subtitle   = `Agent Alpha scored ${sa - sb} more points!`;
-    reflection = `Alpha's rules were more effective! Discuss: which rule contributed most? Was there a rule that didn't help? Try swapping or reordering rules and see if the outcome changes.`;
+    winnerName = 'Player 1 WINS'; winnerClass = 'win-a';
+    subtitle   = `Player 1 scored ${sa - sb} more points!`;
+    reflection = `Player 1's rules were more effective! Discuss: which rule contributed most? Was there a rule that didn't help? Try swapping or reordering rules and see if the outcome changes.`;
   } else if (sb > sa) {
-    winnerName = 'BETA WINS'; winnerClass = 'win-b';
-    subtitle   = `Agent Beta scored ${sb - sa} more points!`;
-    reflection = `Beta's rules were more effective! Discuss: which rule contributed most? Was there a rule that didn't help? Try swapping or reordering rules and see if the outcome changes.`;
+    winnerName = 'Player 2 WINS'; winnerClass = 'win-b';
+    subtitle   = `Player 2 scored ${sb - sa} more points!`;
+    reflection = `Player 2's rules were more effective! Discuss: which rule contributed most? Was there a rule that didn't help? Try swapping or reordering rules and see if the outcome changes.`;
   } else {
     winnerName = "IT'S A TIE!"; winnerClass = 'win-tie';
     subtitle   = 'Both agents scored equally!';

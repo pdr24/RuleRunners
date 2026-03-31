@@ -11,11 +11,28 @@ let buildRunning = false;
 let buildAnimId  = null;
 let buildLastTime = 0;
 let buildStepAcc  = 0;
+let buildRunTimeMs = 0;
+let buildProceedUnlocked = false;
+const BUILD_PROCEED_REQUIRED_MS = 5000;
 
 // ── DATA COLLECTION: per-run firing counts ───────
 let _buildRuleFiringCounts = {};
 
 // ── INIT ─────────────────────────────────────────
+
+function updateBuildProceedButton() {
+  const btn = document.getElementById('build-proceed-btn');
+  if (!btn) return;
+
+  if (buildProceedUnlocked) {
+    btn.style.display = '';
+    btn.disabled = false;
+  } else {
+    btn.style.display = 'none';
+    btn.disabled = true;
+  }
+}
+
 window.addEventListener('load', () => {
   initBuild();
   window.addEventListener('resize', resizeBuildCanvas);
@@ -40,6 +57,10 @@ function initBuild() {
   document.getElementById('build-active-rule-stat').textContent = '—';
   document.getElementById('build-firing-text').textContent = 'none';
   buildSetEditorLocked(false);
+
+  buildRunTimeMs = 0;
+  buildProceedUnlocked = false;
+  updateBuildProceedButton();
 }
 
 // ── LOCK / UNLOCK RULE EDITOR ─────────────────────
@@ -191,13 +212,25 @@ function buildReset() {
 
 function buildLoop(now) {
   if (!buildRunning) return;
+
   const dt = now - buildLastTime;
   buildLastTime = now;
+
+  // Track total running time toward unlock
+  if (!buildProceedUnlocked) {
+    buildRunTimeMs += dt;
+    if (buildRunTimeMs >= BUILD_PROCEED_REQUIRED_MS) {
+      buildProceedUnlocked = true;
+      updateBuildProceedButton();
+    }
+  }
+
   buildStepAcc += dt;
   while (buildStepAcc >= 16) {
     _simStep();
     buildStepAcc -= 16;
   }
+
   drawBuildFrame();
   buildAnimId = requestAnimationFrame(buildLoop);
 }

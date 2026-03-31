@@ -43,8 +43,8 @@ function pcwSnap(x, y, dir, sensors, grounded) {
     resetCount: 0, activeRuleIdx: -1,
     sensors: Object.assign(
       { gap_ahead: false, coin_nearby: false, hazard_nearby: false,
-        grounded: false, // near_wall: false 
-    },
+        grounded: false, // near_wall: false
+      },
       sensors
     ),
   };
@@ -229,6 +229,8 @@ function pcwSubmit() {
   const score          = (sensorCorrect ? 1 : 0) + (ruleCorrect ? 1 : 0);
 
   // ── DATA COLLECTION: record this attempt
+  // dcPCW_recordSubmit also starts the results timer internally,
+  // so no separate dcPCW_recordResultsView() call is needed here.
   dcPCW_recordSubmit({
     sensorsSelected                 : Array.from(pcwSelectedSensors),
     ruleSelected                    : pcwSelectedRule,
@@ -236,18 +238,13 @@ function pcwSubmit() {
     correctRule                     : PCW_SCENARIO.correctRule,
     sensorCorrect,
     ruleCorrect,
-    // Rule is correct given the sensors the student selected (even if sensors were wrong)
     ruleCorrectGivenSelectedSensors : (() => {
-      // Find the first rule whose condition is in the student's selected sensors
       const firstMatchIdx = PCW_RULES.findIndex(r =>
         pcwSelectedSensors.has(r.cond)
       );
       return pcwSelectedRule === firstMatchIdx;
     })(),
   });
-
-  // ── DATA COLLECTION: start timing the results view
-  dcPCW_recordResultsView();
 
   // Recolour cards in place
   pcwRenderSensors(true);

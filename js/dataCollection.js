@@ -169,17 +169,38 @@ function dcLogout() {
   if (session.meta) {
     session.meta.logoutTimestamp = dcTimestamp();
   }
+
+  // Strip the drawing out of the JSON before saving —
+  // it will be downloaded as its own PNG file instead
+  const drawingDataUrl = session.story?.drawingImage || null;
+  if (session.story) {
+    session.story.drawingImage = 'see accompanying .png file';
+  }
+
   dcSaveSession(session);
 
-  const filename = session.meta?.filename || `session_${dcTimestamp()}.json`;
-  const dataStr  = 'data:text/json;charset=utf-8,' +
-                   encodeURIComponent(JSON.stringify(session, null, 2));
+  const baseName = (session.meta?.filename || `session_${dcTimestamp()}.json`)
+    .replace('.json', '');
+
+  // ── Download JSON ──
+  const dataStr = 'data:text/json;charset=utf-8,' +
+                  encodeURIComponent(JSON.stringify(session, null, 2));
   const a = document.createElement('a');
   a.setAttribute('href', dataStr);
-  a.setAttribute('download', filename);
+  a.setAttribute('download', baseName + '.json');
   document.body.appendChild(a);
   a.click();
   a.remove();
+
+  // ── Download PNG (if drawing exists) ──
+  if (drawingDataUrl && drawingDataUrl.startsWith('data:image')) {
+    const img = document.createElement('a');
+    img.setAttribute('href', drawingDataUrl);
+    img.setAttribute('download', baseName + '_drawing.png');
+    document.body.appendChild(img);
+    img.click();
+    img.remove();
+  }
 
   sessionStorage.clear();
   window.location.href = 'login.html';

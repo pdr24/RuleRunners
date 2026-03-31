@@ -56,6 +56,17 @@ function initCompete() {
 
   renderCompeteRules();
   competeSetEditorLocked(false);
+
+  // FIX #1b: start editing timer when a player first interacts with the dropdowns,
+  // not just when they add a rule — catches time spent browsing options
+  ['a', 'b'].forEach(ag => {
+    const playerIdx = ag === 'a' ? 1 : 2;
+    ['cond', 'action'].forEach(field => {
+      const el = document.getElementById(ag + '-' + field);
+      if (el) el.addEventListener('change', () => dcCompete_startRuleEditing(playerIdx), { once: false });
+    });
+  });
+
   setTimeout(() => { resizeCompeteCanvases(); drawCompeteFrame(); }, 60);
 }
 
@@ -198,15 +209,6 @@ function competeStart() {
 }
 
 function competeReset() {
-  // clear rules 
-  competeRulesA = [];
-  competeRulesB = [];
-
-  _competeAllRulesCreatedA = [];
-  _competeAllRulesCreatedB = [];
-  _competeFiringCountsA = {};
-  _competeFiringCountsB = {};
-
   initCompete();
 }
 

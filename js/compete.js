@@ -16,9 +16,14 @@ let competeTimerVal = 20;
 let competeTimerInterval = null;
 let competeScoreA = 0, competeScoreB = 0;
 
+// ── DATA COLLECTION: per-game rule tracking ──────
+let _competeAllRulesCreatedA = [];
+let _competeAllRulesCreatedB = [];
+let _competeFiringCountsA    = {};
+let _competeFiringCountsB    = {};
+
 // ── INIT ─────────────────────────────────────────
 window.addEventListener('load', () => {
-  // Both agents start with empty rule sets on this page
   competeRulesA = [];
   competeRulesB = [];
   initCompete();
@@ -26,6 +31,9 @@ window.addEventListener('load', () => {
     resizeCompeteCanvases();
     drawCompeteFrame();
   });
+
+  // ── DATA COLLECTION: start page timer, click counter, compete bucket
+  dcCompete_start();
 });
 
 function initCompete() {
@@ -71,6 +79,17 @@ function competeAddRule(ag) {
   document.getElementById(ag + '-action').value = '';
   renderCompeteRules();
   showToast(`✓ Rule added to Agent ${ag === 'a' ? 'Player 1' : 'Player 2'}!`);
+
+  // ── DATA COLLECTION: track rule creation and start editing timer
+  if (ag === 'a') {
+    _competeAllRulesCreatedA.push({ cond, action });
+    dcCompete_recordRuleCreated(1);
+    dcCompete_startRuleEditing(1);
+  } else {
+    _competeAllRulesCreatedB.push({ cond, action });
+    dcCompete_recordRuleCreated(2);
+    dcCompete_startRuleEditing(2);
+  }
 }
 
 function competeDeleteRule(ag, i) {
@@ -85,6 +104,10 @@ function _getCompeteArr(ctx) {
 }
 function _onCompeteRender(ctx) {
   renderCompeteRules();
+
+  // ── DATA COLLECTION: rule reorder via drag-and-drop
+  if (ctx === 'a') dcCompete_recordRuleReorder(1);
+  else             dcCompete_recordRuleReorder(2);
 }
 
 function _onCompeteDrop(e, targetIdx, ag) {
@@ -122,6 +145,13 @@ function competeStart() {
   competeRunning = true;
   document.getElementById('compete-start-btn').textContent = '⏸ Running…';
 
+  // ── DATA COLLECTION: stop editing timers, start animation timer
+  dcCompete_startAnimation();
+
+  // Reset per-game firing counts
+  _competeFiringCountsA = {};
+  _competeFiringCountsB = {};
+
   competeTimerInterval = setInterval(() => {
     competeTimerVal--;
     document.getElementById('compete-timer').textContent = competeTimerVal;
@@ -151,13 +181,23 @@ function competeLoop(now) {
   for (let s = 0; s < steps; s++) {
     if (!competeAgentA.finished) {
       updateSensors(competeAgentA, competeLevelA);
-      applyAction(competeAgentA, evaluateRules(competeAgentA, competeRulesA));
+      const actionA = evaluateRules(competeAgentA, competeRulesA);
+      applyAction(competeAgentA, actionA);
       physicsStep(competeAgentA, competeLevelA);
+
+      // ── DATA COLLECTION: track rule firing counts for player 1
+      const idxA = competeAgentA.activeRuleIdx;
+      if (idxA >= 0) _competeFiringCountsA[idxA] = (_competeFiringCountsA[idxA] || 0) + 1;
     }
     if (!competeAgentB.finished) {
       updateSensors(competeAgentB, competeLevelB);
-      applyAction(competeAgentB, evaluateRules(competeAgentB, competeRulesB));
+      const actionB = evaluateRules(competeAgentB, competeRulesB);
+      applyAction(competeAgentB, actionB);
       physicsStep(competeAgentB, competeLevelB);
+
+      // ── DATA COLLECTION: track rule firing counts for player 2
+      const idxB = competeAgentB.activeRuleIdx;
+      if (idxB >= 0) _competeFiringCountsB[idxB] = (_competeFiringCountsB[idxB] || 0) + 1;
     }
     updateEnemies(competeLevelA);
     updateEnemies(competeLevelB);
@@ -171,7 +211,6 @@ function competeLoop(now) {
   document.getElementById('score-a').textContent = competeScoreA;
   document.getElementById('score-b').textContent = competeScoreB;
 
-  // Highlight firing rules
   _highlightRules('a', competeAgentA.activeRuleIdx, competeRulesA.length);
   _highlightRules('b', competeAgentB.activeRuleIdx, competeRulesB.length);
 
@@ -206,6 +245,22 @@ function endCompetition() {
 
   const sa = calcScore(competeAgentA);
   const sb = calcScore(competeAgentB);
+
+  // ── DATA COLLECTION: record the full competition result
+  dcCompete_recordResult({
+    p1FinalRules       : competeRulesA.map(r => ({ cond: r.cond, action: r.action })),
+    p1AllRulesCreated  : _competeAllRulesCreatedA.map(r => ({ cond: r.cond, action: r.action })),
+    p1Score            : sa,
+    p1CoinsCollected   : competeAgentA ? competeAgentA.coins    : 0,
+    p1DistanceMax      : competeAgentA ? Math.round(competeAgentA.distMax / 10) : 0,
+    p1RuleFiringCounts : { ..._competeFiringCountsA },
+    p2FinalRules       : competeRulesB.map(r => ({ cond: r.cond, action: r.action })),
+    p2AllRulesCreated  : _competeAllRulesCreatedB.map(r => ({ cond: r.cond, action: r.action })),
+    p2Score            : sb,
+    p2CoinsCollected   : competeAgentB ? competeAgentB.coins    : 0,
+    p2DistanceMax      : competeAgentB ? Math.round(competeAgentB.distMax / 10) : 0,
+    p2RuleFiringCounts : { ..._competeFiringCountsB },
+  });
 
   document.getElementById('result-score-a').textContent = sa;
   document.getElementById('result-score-b').textContent = sb;
